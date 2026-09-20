@@ -395,8 +395,8 @@
     };
 
     // Правильна ініціалізація для Web CDN
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
     document.addEventListener("DOMContentLoaded", () => {
         const welcomeScreen = document.getElementById('welcome-screen');

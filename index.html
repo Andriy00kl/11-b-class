@@ -377,27 +377,28 @@
         </div>
     </footer>
 
+<!-- 1. ПІДКЛЮЧЕННЯ БІБЛІОТЕК FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
+<!-- 2. ОСНОВНИЙ JS КОД -->
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyA2pP2vZF6DHW-Oz2TAP_APQVcKAG81FR8",
-  authDomain: "b-class-site.firebaseapp.com",
-  databaseURL: "https://b-class-site-default-rtdb.firebaseio.com",
-  projectId: "b-class-site",
-  storageBucket: "b-class-site.firebasestorage.app",
-  messagingSenderId: "788828881202",
-  appId: "1:788828881202:web:ee13bde50142ce03bf972b",
-  measurementId: "G-2QTPJ3W33D"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyA2pP2vZF6DHW-Oz2TAP_APQVcKAG81FR8",
+        authDomain: "b-class-site.firebaseapp.com",
+        databaseURL: "https://b-class-site-default-rtdb.firebaseio.com",
+        projectId: "b-class-site",
+        storageBucket: "b-class-site.firebasestorage.app",
+        messagingSenderId: "788828881202",
+        appId: "1:788828881202:web:ee13bde50142ce03bf972b",
+        measurementId: "G-2QTPJ3W33D"
+    };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+    // Правильна ініціалізація для Web CDN
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-        <!-- Скрипт для екрану привітання -->
-        document.addEventListener("DOMContentLoaded", () => {
+
+    document.addEventListener("DOMContentLoaded", () => {
         const welcomeScreen = document.getElementById('welcome-screen');
         const userNameInput = document.getElementById('userName');
         const userNickInput = document.getElementById('userNick');
@@ -414,7 +415,6 @@ const analytics = getAnalytics(app);
             if (!uploadContainer) return;
 
             if (role === 'Учень 11-Б') {
-                // Показуємо кнопка для УЧНІВ
                 uploadContainer.innerHTML = `
                     <input type="file" id="photo-upload-input" accept="image/*" multiple class="hidden">
                     <label for="photo-upload-input" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all cursor-pointer transform hover:scale-105 active:scale-95">
@@ -424,7 +424,6 @@ const analytics = getAnalytics(app);
                 `;
                 initPhotoUploadListener();
             } else {
-                // Показуємо повідомлення для ГОСТЕЙ
                 uploadContainer.innerHTML = `
                     <div class="bg-gray-100 border border-gray-200 text-gray-600 text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2">
                         <span>🔒</span> Додавати фотографії можуть лише учні 11-Б класу
@@ -480,7 +479,6 @@ const analytics = getAnalytics(app);
                 localStorage.setItem('visitorRole', role);
                 if (nick) localStorage.setItem('visitorNick', nick);
 
-                // Якщо Учень — відправляємо дані в загальну базу Firebase
                 if (role === 'Учень 11-Б') {
                     db.ref('students').push({
                         name: name,
@@ -500,7 +498,7 @@ const analytics = getAnalytics(app);
         db.ref('students').on('value', (snapshot) => {
             const tbody = document.getElementById('students-table-body');
             if (!tbody) return;
-            tbody.innerHTML = ''; // Очищаємо таблицю перед оновленням
+            tbody.innerHTML = '';
 
             const data = snapshot.val();
             if (data) {
@@ -544,7 +542,6 @@ const analytics = getAnalytics(app);
 
                     const reader = new FileReader();
                     reader.onload = (event) => {
-                        // Відправляємо фото в базу даних
                         db.ref('photos').push({
                             src: event.target.result,
                             author: localStorage.getItem('visitorName') || 'Учень 11-Б'
@@ -556,15 +553,11 @@ const analytics = getAnalytics(app);
             });
         }
 
-        // Слухач оновлень фотографій з Firebase
         db.ref('photos').on('value', (snapshot) => {
             const galleryGrid = document.getElementById('gallery-grid');
             if (!galleryGrid) return;
             
-            // Залишаємо перші два демонстраційні фото, решту оновлюємо
             const data = snapshot.val();
-            
-            // Очищаємо завантажені раніше фото з екрану
             document.querySelectorAll('.uploaded-firebase-photo').forEach(el => el.remove());
 
             if (data) {
@@ -582,6 +575,7 @@ const analytics = getAnalytics(app);
             }
         });
     });
+
         document.addEventListener('DOMContentLoaded', () => {
             // Логіка мобільного меню
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');

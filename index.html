@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Офіційний сайт 11-Б класу</title>
+    <!-- Підключення шрифту Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Підключення Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#4F46E5', // Indigo-600
+                        secondary: '#3B82F6', // Blue-500
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Додаткові базові стилі */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB; /* Gray-50 */
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased flex flex-col min-h-screen">
+    <!-- ЕКРАН ПРИВІТАННЯ (показується лише при першому візиті) -->
+    <div id="welcome-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900 bg-opacity-95 backdrop-blur-sm transition-opacity duration-500">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 text-center transform transition-all">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">Привіт! 👋</h1>
+            <p class="text-gray-500 mb-6">Давайте познайомимось перед тим, як перейти на сайт.</p>
+
+            <!-- Поле: Ім'я -->
+            <div class="mb-4 text-left">
+                <label for="userName" class="block text-sm font-medium text-gray-700 mb-1">Як вас звати?</label>
+                <input type="text" id="userName" placeholder="Ваше ім'я..." class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm" required>
+            </div>
+
+            <!-- НОВЕ Поле: NickName -->
+            <div class="mb-5 text-left">
+                <label for="userNick" class="block text-sm font-medium text-gray-700 mb-1">Ваш NickName <span class="text-gray-400 text-xs font-normal">(за бажанням)</span></label>
+                <input type="text" id="userNick" placeholder="Cool_Hacker_99..." class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm">
+            </div>
+
+            <!-- Вибір ролі -->
+            <div class="mb-8 text-left">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Хто ви?</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="btn-student" class="py-2.5 px-4 border-2 border-gray-200 text-gray-600 font-semibold rounded-xl hover:border-blue-300 transition-colors">Я з 11-Б</button>
+                    <button id="btn-guest" class="py-2.5 px-4 border-2 border-gray-200 text-gray-600 font-semibold rounded-xl hover:border-blue-300 transition-colors">Просто гість</button>
+                </div>
+                <input type="hidden" id="userRole" value="">
+            </div>
+
+            <button id="enter-site-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md opacity-50 cursor-not-allowed transform hover:scale-[1.02]" disabled>
+                Увійти на сайт
+            </button>
+        </div>
+    </div>
+
+    <!-- Навігація -->
+    <header class="fixed w-full bg-white/90 backdrop-blur-md shadow-sm z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Логотип -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="#home" class="text-2xl font-bold text-primary flex items-center gap-2">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        11-Б Клас
+                    </a>
+                </div>
+
+                <!-- Десктопне меню -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#home" class="nav-link text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">Головна</a>
+                    <a href="#news" class="nav-link text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">Новини</a>
+                    <a href="#schedule" class="nav-link text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">Розклад</a>
+                    <a href="#students" class="nav-link text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">Учні</a>
+                </nav>
+
+                <!-- Кнопка мобільного меню -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-primary focus:outline-none p-2">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path id="menu-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Випадаюче мобільне меню -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 shadow-lg absolute w-full">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#home" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-indigo-50">Головна</a>
+                <a href="#news" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-indigo-50">Новини</a>
+                <a href="#schedule" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-indigo-50">Розклад</a>
+                <a href="#students" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-indigo-50">Учні</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основний контент -->
+    <main class="flex-grow pt-16">
+        
+        <!-- Головна секція (Hero) -->
+        <section id="home" class="relative bg-gradient-to-br from-indigo-900 via-primary to-blue-600 text-white overflow-hidden">
+            <!-- Декоративні елементи фону -->
+            <div class="absolute inset-0 opacity-20">
+                <svg class="absolute left-0 bottom-0 transform -translate-x-1/2 translate-y-1/2" width="404" height="404" fill="none" viewBox="0 0 404 404"><defs><pattern id="85737c0e-0916-41d7-917f-596dc7edfa27" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="4" height="4" fill="currentColor"></rect></pattern></defs><rect width="404" height="404" fill="url(#85737c0e-0916-41d7-917f-596dc7edfa27)"></rect></svg>
+                <svg class="absolute right-0 top-0 transform translate-x-1/2 -translate-y-1/2" width="404" height="404" fill="none" viewBox="0 0 404 404"><defs><pattern id="85737c0e-0916-41d7-917f-596dc7edfa27" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="4" height="4" fill="currentColor"></rect></pattern></defs><rect width="404" height="404" fill="url(#85737c0e-0916-41d7-917f-596dc7edfa27)"></rect></svg>
+            </div>
+            
+            <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 flex flex-col items-center text-center">
+                <span class="inline-block py-1 px-3 rounded-full bg-white/20 text-white text-sm font-semibold tracking-wider mb-6 border border-white/30 backdrop-blur-sm">
+                    Випускний клас 🎓
+                </span>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6">
+                    Ласкаво просимо на сайт <br class="hidden md:block">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500">11-Б класу!</span>
+                </h1>
+                <p class="mt-4 max-w-2xl text-xl text-indigo-100 mb-10">
+                    Тут ви знайдете всю необхідну інформацію: актуальний розклад уроків, останні новини нашого шкільного життя та багато іншого.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="#schedule" class="px-8 py-3 border border-transparent text-base font-medium rounded-lg text-primary bg-white hover:bg-gray-50 shadow-lg transition-all hover:scale-105">
+                        Дивитись розклад
+                    </a>
+                    <a href="#news" class="px-8 py-3 border border-white/30 text-base font-medium rounded-lg text-white bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all">
+                        Останні новини
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Секція Новин -->
+        <section id="news" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Останні новини</h2>
+                    <p class="mt-4 text-lg text-gray-500">Будьте в курсі подій нашого класу.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Картка новини 1 -->
+                    <article class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+                        <img class="h-48 w-full object-cover" src="https://placehold.co/600x400/e2e8f0/475569?text=Фото+події" alt="Новина 1">
+                        <div class="p-6">
+                            <p class="text-sm font-medium text-primary mb-1">Подія</p>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Підготовка до випускного</h3>
+                            <p class="text-gray-600 mb-4 line-clamp-3">Ми розпочали обговорення деталей нашого майбутнього випускного вечора. Всі пропозиції приймаються до кінця тижня.</p>
+                            <span class="text-xs text-gray-400">12 Вересня 2026</span>
+                        </div>
+                    </article>
+
+                    <!-- Картка новини 2 -->
+                    <article class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+                        <img class="h-48 w-full object-cover" src="https://placehold.co/600x400/e2e8f0/475569?text=Олімпіада" alt="Новина 2">
+                        <div class="p-6">
+                            <p class="text-sm font-medium text-secondary mb-1">Досягнення</p>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Перемога на олімпіаді</h3>
+                            <p class="text-gray-600 mb-4 line-clamp-3">Вітаємо нашого однокласника з першим місцем на міській олімпіаді з математики! Пишаємося твоїми успіхами.</p>
+                            <span class="text-xs text-gray-400">05 Вересня 2026</span>
+                        </div>
+                    </article>
+
+                    <!-- Картка новини 3 -->
+                    <article class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+                        <img class="h-48 w-full object-cover" src="https://placehold.co/600x400/e2e8f0/475569?text=Екскурсія" alt="Новина 3">
+                        <div class="p-6">
+                            <p class="text-sm font-medium text-green-500 mb-1">Поїздка</p>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Осіння екскурсія</h3>
+                            <p class="text-gray-600 mb-4 line-clamp-3">Наступного місяця планується поїздка до Карпат. Будь ласка, здайте згоди від батьків класному керівнику.</p>
+                            <span class="text-xs text-gray-400">01 Вересня 2026</span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- ПОЧАТОК СЕКЦІЇ РОЗКЛАДУ -->
+<section id="schedule" class="py-20 bg-gray-50">
+        <div class="text-center mb-16 relative">
+            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl inline-block relative">
+                Розклад уроків 11-Б
+                <!-- СЕКРЕТНА КНОПКА (маленька напівпрозора крапка праворуч від тексту) -->
+                <button id="secretBtn" class="absolute -right-8 top-3 w-3 h-3 rounded-full bg-gray-200 hover:bg-red-200 transition-colors duration-300 opacity-40 cursor-pointer focus:outline-none"></button>
+            </h2>
+            <p class="mt-4 text-lg text-gray-500">Наш розклад на тиждень</p>
+        </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Сітка днів -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+
+            <!-- Понеділок -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border-t-4 border-blue-500 hover:shadow-lg transition">
+                <div class="bg-blue-50 text-center py-4 border-b border-gray-100">
+                    <h3 class="text-xl font-bold text-blue-700">Понеділок</h3>
+                </div>
+                <ul class="divide-y divide-gray-100 text-gray-700 text-sm">
+                    <li class="p-3 flex"><span class="font-bold text-blue-400 w-6">1.</span> <span>Англійська мова</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-blue-400 w-6">2.</span> <span>Українська мова</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-blue-400 w-6">3.</span> <span>Біологія</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-blue-400 w-6">4.</span> <span>Українська мова</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-blue-400 w-6">5.</span> <span>Хімія</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-blue-400 w-6">6.</span> <span>Геометрія</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-blue-400 w-6">7.</span> <span>Фізична культура</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-blue-400 w-6">8.</span> <span>Додаткова Історія України</span></li>
+                </ul>
+            </div>
+
+            <!-- Вівторок -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border-t-4 border-purple-500 hover:shadow-lg transition">
+                <div class="bg-purple-50 text-center py-4 border-b border-gray-100">
+                    <h3 class="text-xl font-bold text-purple-700">Вівторок</h3>
+                </div>
+                <ul class="divide-y divide-gray-100 text-gray-700 text-sm">
+                    <li class="p-3 flex"><span class="font-bold text-purple-400 w-6">1.</span> <span>Українська мова</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-purple-400 w-6">2.</span> <span>Геометрія</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-purple-400 w-6">3.</span> <span>Фізика</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-purple-400 w-6">4.</span> <span>Фізика</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-purple-400 w-6">5.</span> <span>Англійська мова</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-purple-400 w-6">6.</span> <span>Фізична культура</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-purple-400 w-6">7.</span> <span>Історія України</span></li>
+                </ul>
+            </div>
+
+            <!-- Середа -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border-t-4 border-sky-500 hover:shadow-lg transition">
+                <div class="bg-sky-50 text-center py-4 border-b border-gray-100">
+                    <h3 class="text-xl font-bold text-sky-700">Середа</h3>
+                </div>
+                <ul class="divide-y divide-gray-100 text-gray-700 text-sm">
+                    <li class="p-3 flex"><span class="font-bold text-sky-400 w-6">1.</span> <span>Технології</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-sky-400 w-6">2.</span> <span>Технології</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-sky-400 w-6">3.</span> <span>Всесвітня історія</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-sky-400 w-6">4.</span> <span>Всесвітня історія</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-sky-400 w-6">5.</span> <span>Інформатика</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-sky-400 w-6">6.</span> <span>Інформатика</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-sky-400 w-6">7.</span> <span>Історія України</span></li>
+                </ul>
+            </div>
+
+            <!-- Четвер -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border-t-4 border-pink-500 hover:shadow-lg transition">
+                <div class="bg-pink-50 text-center py-4 border-b border-gray-100">
+                    <h3 class="text-xl font-bold text-pink-700">Четвер</h3>
+                </div>
+                <ul class="divide-y divide-gray-100 text-gray-700 text-sm">
+                    <li class="p-3 flex"><span class="font-bold text-pink-400 w-6">1.</span> <span>Англійська мова</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-pink-400 w-6">2.</span> <span>Географія</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-pink-400 w-6">3.</span> <span>Українська література</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-pink-400 w-6">4.</span> <span>Зарубіжна література</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-pink-400 w-6">5.</span> <span>Алгебра</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-pink-400 w-6">6.</span> <span>Фізична культура</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-pink-400 w-6">7.</span> <span>Біологія</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-pink-400 w-6">8.</span> <span>Додаткова Історія України</span></li>
+                </ul>
+            </div>
+
+            <!-- П'ятниця -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border-t-4 border-indigo-500 hover:shadow-lg transition">
+                <div class="bg-indigo-50 text-center py-4 border-b border-gray-100">
+                    <h3 class="text-xl font-bold text-indigo-700">П'ятниця</h3>
+                </div>
+                <ul class="divide-y divide-gray-100 text-gray-700 text-sm">
+                    <li class="p-3 flex"><span class="font-bold text-indigo-400 w-6">1.</span> <span>Алгебра</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-indigo-400 w-6">2.</span> <span>Англійська мова</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-indigo-400 w-6">3.</span> <span>Українська література</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-indigo-400 w-6">4.</span> <span>Фізика</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-indigo-400 w-6">5.</span> <span>Фізика</span></li>
+                    <li class="p-3 flex bg-gray-50"><span class="font-bold text-indigo-400 w-6">6.</span> <span>Хімія</span></li>
+                    <li class="p-3 flex"><span class="font-bold text-indigo-400 w-6">7.</span> <span>Англійська мова</span></li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</section>
+<!-- КІНЕЦЬ СЕКЦІЇ РОЗКЛАДУ -->
+
+       <!-- СЕКЦІЯ СПИСКУ УЧНІВ (У ВИГЛЯДІ ТАБЛИЦІ) -->
+<section id="students" class="py-20 bg-white">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Список учнів 11-Б класу</h2>
+            <p class="mt-4 text-lg text-gray-500">Наша дружня команда</p>
+        </div>
+
+        <!-- Контейнер таблиці із заокругленими кутами та можливістю скролу на мобільних -->
+        <div class="overflow-x-auto shadow-md rounded-2xl border border-gray-200">
+            <table class="w-full text-left border-collapse bg-white">
+                <thead class="bg-blue-600 text-white text-sm uppercase font-semibold">
+                    <tr>
+                        <th class="py-4 px-6 w-16 text-center">№</th>
+                        <th class="py-4 px-6">Ім'я та Прізвище</th>
+                        <th class="py-4 px-6">NickName</th>
+                        <th class="py-4 px-6 text-center">Статус</th>
+                    </tr>
+                </thead>
+                <!-- Сюди JavaScript автоматично додаватиме рядки учнів -->
+                <tbody id="students-table-body" class="divide-y divide-gray-200 text-gray-700 text-sm">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+    </main>
+
+    <!-- Підвал (Footer) -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left">
+                <span class="text-2xl font-bold text-white flex items-center justify-center md:justify-start gap-2 mb-2">
+                    <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    11-Б Клас
+                </span>
+                <p class="text-gray-400 text-sm">Офіційний веб-сайт класу. Всі права захищені &copy; 2026.</p>
+            </div>
+            
+            <div class="flex space-x-6">
+                <!-- Заглушки для соцмереж -->
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                    <span class="sr-only">Instagram</span>
+                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clip-rule="evenodd" />
+                    </svg>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                    <span class="sr-only">Telegram</span>
+                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.06-.2-.06-.05-.14-.03-.21-.02-.09.02-1.46.93-4.12 2.73-.39.26-.74.39-1.06.38-.35-.01-1.02-.2-1.52-.36-.61-.2-1.09-.31-1.05-.66.02-.18.27-.36.75-.55 2.94-1.28 4.9-2.12 5.88-2.53 2.79-1.16 3.37-1.36 3.75-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .24z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Інтерактивний JavaScript -->
+    <script>
+        <!-- Скрипт для екрану привітання -->
+        document.addEventListener("DOMContentLoaded", () => {
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const userNameInput = document.getElementById('userName');
+            const userNickInput = document.getElementById('userNick'); // Отримуємо поле нікнейму
+            const btnStudent = document.getElementById('btn-student');
+            const btnGuest = document.getElementById('btn-guest');
+            const userRoleInput = document.getElementById('userRole');
+            const enterBtn = document.getElementById('enter-site-btn');
+
+            // 1. Перевіряємо, чи користувач вже заходив на сайт раніше
+            if (localStorage.getItem('siteVisited') === 'true') {
+                welcomeScreen.style.display = 'none';
+                document.body.style.overflow = 'auto'; 
+                return;
+            } else {
+                document.body.style.overflow = 'hidden';
+            }
+
+            // 2. Логіка вибору ролі
+            function selectRole(role, activeBtn, inactiveBtn) {
+                userRoleInput.value = role;
+
+                activeBtn.classList.remove('border-gray-200', 'text-gray-600');
+                activeBtn.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-700');
+
+                inactiveBtn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-700');
+                inactiveBtn.classList.add('border-gray-200', 'text-gray-600');
+
+                checkFormValidity();
+            }
+
+            btnStudent.addEventListener('click', () => selectRole('Учень 11-Б', btnStudent, btnGuest));
+            btnGuest.addEventListener('click', () => selectRole('Гість', btnGuest, btnStudent));
+
+            // Перевіряємо, коли вводиться ім'я
+            userNameInput.addEventListener('input', checkFormValidity);
+
+            // 3. Функція перевірки (Нікнейм не перевіряємо, бо він необов'язковий)
+            function checkFormValidity() {
+                if (userNameInput.value.trim() !== '' && userRoleInput.value !== '') {
+                    enterBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    enterBtn.removeAttribute('disabled');
+                } else {
+                    enterBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    enterBtn.setAttribute('disabled', 'true');
+                }
+            }
+
+            // 4. Дія при натисканні на кнопку "Увійти"
+            enterBtn.addEventListener('click', () => {
+                const name = userNameInput.value.trim();
+                const nick = userNickInput.value.trim(); // Зчитуємо нікнейм
+                const role = userRoleInput.value;
+
+                // Зберігаємо всі дані
+                localStorage.setItem('siteVisited', 'true');
+                localStorage.setItem('visitorName', name);
+                localStorage.setItem('visitorRole', role);
+                if (nick !== '') {
+                    localStorage.setItem('visitorNick', nick); // Зберігаємо нік, якщо його ввели
+                }
+
+                // Анімація зникнення
+                welcomeScreen.classList.add('opacity-0');
+                document.body.style.overflow = 'auto'; 
+                
+                setTimeout(() => {
+                    welcomeScreen.style.display = 'none';
+                }, 500);
+            });
+        });
+        document.getElementById('secretBtn').addEventListener('click', function() {
+            // Знаходимо всі назви предметів (другий span всередині кожного <li> в розкладі)
+            const subjects = document.querySelectorAll('#schedule li span:nth-child(2)');
+
+            subjects.forEach(span => {
+                // Отримуємо текст предмета
+                const text = span.textContent.trim();
+
+                // Шукаємо потрібні предмети
+                if (text === 'Біологія' || text === 'Хімія' || text === 'Англійська мова' || text === 'Технології') {
+                    
+                    // Якщо предмет ще не змінений
+                    if (!span.classList.contains('secret-activated')) {
+                        // Зберігаємо оригінальну назву
+                        span.setAttribute('data-original', text);
+                        span.classList.add('secret-activated');
+
+                        // Додаємо перекреслення червоним та новий предмет знизу
+                        span.innerHTML = `<span class="line-through text-red-500">${text}</span><br><span class="text-green-600 font-bold text-sm mt-1 inline-block">Фізична культура</span>`;
+                    } else {
+                        // Якщо натиснути ще раз - повертаємо звичайний розклад
+                        span.classList.remove('secret-activated');
+                        span.innerHTML = span.getAttribute('data-original');
+                    }
+                }
+            });
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            // Логіка мобільного меню
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            
+            // Іконки для бургер-меню (відкрити/закрити)
+            const iconMenu = "M4 6h16M4 12h16M4 18h16";
+            const iconClose = "M6 18L18 6M6 6l12 12";
+
+            function toggleMenu() {
+                mobileMenu.classList.toggle('hidden');
+                // Зміна іконки
+                if (mobileMenu.classList.contains('hidden')) {
+                    menuIcon.setAttribute('d', iconMenu);
+                } else {
+                    menuIcon.setAttribute('d', iconClose);
+                }
+            }
+
+            mobileMenuBtn.addEventListener('click', toggleMenu);
+
+            // Закриття мобільного меню при кліку на посилання
+            const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                    menuIcon.setAttribute('d', iconMenu);
+                });
+            });
+
+            // Додавання тіні до навігації при прокрутці
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 10) {
+                    navbar.classList.add('shadow-md');
+                    navbar.classList.remove('shadow-sm');
+                } else {
+                    navbar.classList.add('shadow-sm');
+                    navbar.classList.remove('shadow-md');
+                }
+            });
+        });
+        <!-- Оновлений скрипт вітального вікна та ТАБЛИЦІ учнів -->
+        document.addEventListener("DOMContentLoaded", () => {
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const userNameInput = document.getElementById('userName');
+            const userNickInput = document.getElementById('userNick');
+            const btnStudent = document.getElementById('btn-student');
+            const btnGuest = document.getElementById('btn-guest');
+            const userRoleInput = document.getElementById('userRole');
+            const enterBtn = document.getElementById('enter-site-btn');
+
+            // 1. Завантажуємо вже збережених учнів у таблицю
+            loadSavedStudents();
+
+            // 2. Перевіряємо, чи заходив користувач раніше
+            if (localStorage.getItem('siteVisited') === 'true') {
+                if (welcomeScreen) welcomeScreen.style.display = 'none';
+                document.body.style.overflow = 'auto'; 
+            } else {
+                document.body.style.overflow = 'hidden';
+            }
+
+            // 3. Перемикач ролей (11-Б / Гість)
+            function selectRole(role, activeBtn, inactiveBtn) {
+                userRoleInput.value = role;
+
+                activeBtn.classList.remove('border-gray-200', 'text-gray-600');
+                activeBtn.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-700');
+
+                inactiveBtn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-700');
+                inactiveBtn.classList.add('border-gray-200', 'text-gray-600');
+
+                checkFormValidity();
+            }
+
+            if (btnStudent && btnGuest) {
+                btnStudent.addEventListener('click', () => selectRole('Учень 11-Б', btnStudent, btnGuest));
+                btnGuest.addEventListener('click', () => selectRole('Гість', btnGuest, btnStudent));
+            }
+
+            if (userNameInput) {
+                userNameInput.addEventListener('input', checkFormValidity);
+            }
+
+            function checkFormValidity() {
+                if (userNameInput.value.trim() !== '' && userRoleInput.value !== '') {
+                    enterBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    enterBtn.removeAttribute('disabled');
+                } else {
+                    enterBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    enterBtn.setAttribute('disabled', 'true');
+                }
+            }
+
+            // 4. Клік на "Увійти на сайт"
+            if (enterBtn) {
+                enterBtn.addEventListener('click', () => {
+                    const name = userNameInput.value.trim();
+                    const nick = userNickInput.value.trim();
+                    const role = userRoleInput.value;
+
+                    // Зберігаємо дані відвідувача
+                    localStorage.setItem('siteVisited', 'true');
+                    localStorage.setItem('visitorName', name);
+                    localStorage.setItem('visitorRole', role);
+                    if (nick) localStorage.setItem('visitorNick', nick);
+
+                    // Якщо це учень 11-Б — додаємо його в таблицю
+                    if (role === 'Учень 11-Б') {
+                        saveAndRenderStudent(name, nick);
+                    }
+
+                    // Закриваємо модальне вікно
+                    welcomeScreen.classList.add('opacity-0');
+                    document.body.style.overflow = 'auto'; 
+                    
+                    setTimeout(() => {
+                        welcomeScreen.style.display = 'none';
+                    }, 500);
+                });
+            }
+
+            // --- ДОПОМІЖНІ ФУНКЦІЇ ДЛЯ ТАБЛИЦІ УЧНІВ ---
+
+            function saveAndRenderStudent(name, nick) {
+                let customStudents = JSON.parse(localStorage.getItem('customStudents') || '[]');
+                
+                const exists = customStudents.some(s => s.name.toLowerCase() === name.toLowerCase());
+                if (!exists) {
+                    const newStudent = { name, nick };
+                    customStudents.push(newStudent);
+                    localStorage.setItem('customStudents', JSON.stringify(customStudents));
+                    addStudentRowToDOM(name, nick, true);
+                }
+            }
+
+            function loadSavedStudents() {
+                const customStudents = JSON.parse(localStorage.getItem('customStudents') || '[]');
+                const currentName = localStorage.getItem('visitorName');
+
+                customStudents.forEach(student => {
+                    const isYou = currentName && currentName.toLowerCase() === student.name.toLowerCase();
+                    addStudentRowToDOM(student.name, student.nick, isYou);
+                });
+            }
+
+            // Генерація РЯДКА ТАБЛИЦІ (<tr>) та вставка в tbody
+            function addStudentRowToDOM(name, nick, isYou = false) {
+                const tbody = document.getElementById('students-table-body');
+                if (!tbody) return;
+
+                // Вираховуємо порядковий номер рядка (1, 2, 3...)
+                const rowNumber = tbody.children.length + 1;
+
+                const tr = document.createElement('tr');
+                tr.className = `hover:bg-gray-50 transition ${
+                    isYou ? 'bg-blue-50/80 font-medium' : ''
+                }`;
+
+                tr.innerHTML = `
+                    <td class="py-4 px-6 text-center font-bold text-gray-400">${rowNumber}</td>
+                    <td class="py-4 px-6 font-semibold text-gray-800">
+                        <div class="flex items-center gap-2">
+                            <span>${name}</span>
+                            ${isYou ? '<span class="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Це ти</span>' : ''}
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-gray-600">
+                        ${nick ? '<span class="text-blue-500">@' + nick + '</span>' : '<span class="text-gray-300 font-normal">—</span>'}
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Учень 11-Б
+                        </span>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            }
+        });
+    </script>
+</body>
+</html>

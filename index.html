@@ -300,7 +300,7 @@
             </div>
 
             <!-- СИНЯ КНОПКА ЗАВАНТАЖЕННЯ ФОТО -->
-            <div>
+            <div id="upload-container">
                 <input type="file" id="photo-upload-input" accept="image/*" multiple class="hidden">
                 <label for="photo-upload-input" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all cursor-pointer transform hover:scale-105 active:scale-95">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -313,19 +313,6 @@
 
         <!-- Сітка для відображення світлин -->
         <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <!-- Демонстраційні фотографії-заглушки (можна змінити або видалити) -->
-            <div class="relative group overflow-hidden rounded-2xl shadow-md aspect-square bg-gray-200">
-                <div class="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4">
-                    <p class="text-white font-medium text-sm">Шкільні будні</p>
-                </div>
-            </div>
-
-            <div class="relative group overflow-hidden rounded-2xl shadow-md aspect-square bg-gray-200">
-                <div class="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4">
-                    <p class="text-white font-medium text-sm">Навіки разом</p>
-                </div>
-            </div>
-
             <!-- Сюди завантажені фото додаватимуться автоматично -->
         </div>
 
@@ -391,7 +378,33 @@
     </footer>
 
     <!-- Інтерактивний JavaScript -->
-    <script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+<script>
+    // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyA2pP2vZF6DHW-Oz2TAP_APQVcKAG81FR8",
+  authDomain: "b-class-site.firebaseapp.com",
+  databaseURL: "https://b-class-site-default-rtdb.firebaseio.com",
+  projectId: "b-class-site",
+  storageBucket: "b-class-site.firebasestorage.app",
+  messagingSenderId: "788828881202",
+  appId: "1:788828881202:web:ee13bde50142ce03bf972b",
+  measurementId: "G-2QTPJ3W33D"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+    const db = firebase.database();
         <!-- Скрипт для екрану привітання -->
         document.addEventListener("DOMContentLoaded", () => {
             const welcomeScreen = document.getElementById('welcome-screen');

@@ -288,6 +288,52 @@
 </section>
 <!-- КІНЕЦЬ СЕКЦІЇ РОЗКЛАДУ -->
 
+<!-- СЕКЦІЯ ГАЛЕРЕЇ ФОТОГРАФІЙ -->
+<section id="gallery" class="py-20 bg-gray-50 border-t border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Заголовок і Синя кнопка завантаження -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-12 gap-4">
+            <div>
+                <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Світлини нашого класу 📸</h2>
+                <p class="mt-2 text-lg text-gray-500">Яскраві моменти життя 11-Б</p>
+            </div>
+
+            <!-- СИНЯ КНОПКА ЗАВАНТАЖЕННЯ ФОТО -->
+            <div>
+                <input type="file" id="photo-upload-input" accept="image/*" multiple class="hidden">
+                <label for="photo-upload-input" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all cursor-pointer transform hover:scale-105 active:scale-95">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Додати фотографію
+                </label>
+            </div>
+        </div>
+
+        <!-- Сітка для відображення світлин -->
+        <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Демонстраційні фотографії-заглушки (можна змінити або видалити) -->
+            <div class="relative group overflow-hidden rounded-2xl shadow-md aspect-square bg-gray-200">
+                <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&auto=format&fit=crop&q=80" alt="Клас" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                <div class="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4">
+                    <p class="text-white font-medium text-sm">Шкільні будні</p>
+                </div>
+            </div>
+
+            <div class="relative group overflow-hidden rounded-2xl shadow-md aspect-square bg-gray-200">
+                <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&auto=format&fit=crop&q=80" alt="Друзі" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                <div class="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4">
+                    <p class="text-white font-medium text-sm">Навіки разом</p>
+                </div>
+            </div>
+
+            <!-- Сюди завантажені фото додаватимуться автоматично -->
+        </div>
+
+    </div>
+</section>
+
        <!-- СЕКЦІЯ СПИСКУ УЧНІВ (У ВИГЛЯДІ ТАБЛИЦІ) -->
 <section id="students" class="py-20 bg-white">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -490,6 +536,65 @@
                 }
             });
         });
+        // --- ЛОГІКА ГАЛЕРЕЇ ФОТОГРАФІЙ ---
+const photoInput = document.getElementById('photo-upload-input');
+const galleryGrid = document.getElementById('gallery-grid');
+
+// 1. Завантажуємо збережені користувачем фотографії з пам'яті
+loadSavedPhotos();
+
+if (photoInput) {
+    photoInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+
+        files.forEach(file => {
+            if (!file.type.startsWith('image/')) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const base64Image = event.target.result;
+                saveAndRenderPhoto(base64Image);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Скидаємо інпут, щоб можна було вибрати той самий файл повторно
+        photoInput.value = '';
+    });
+}
+
+function saveAndRenderPhoto(imageData) {
+    let savedPhotos = JSON.parse(localStorage.getItem('uploadedClassPhotos') || '[]');
+    savedPhotos.push(imageData);
+    
+    try {
+        localStorage.setItem('uploadedClassPhotos', JSON.stringify(savedPhotos));
+        addPhotoToDOM(imageData);
+    } catch (err) {
+        alert('Пам’ять браузера заповнена! Спробуйте вибрати меншу фотографію.');
+    }
+}
+
+function loadSavedPhotos() {
+    const savedPhotos = JSON.parse(localStorage.getItem('uploadedClassPhotos') || '[]');
+    savedPhotos.forEach(imageData => addPhotoToDOM(imageData));
+}
+
+function addPhotoToDOM(src) {
+    if (!galleryGrid) return;
+
+    const photoCard = document.createElement('div');
+    photoCard.className = 'relative group overflow-hidden rounded-2xl shadow-md aspect-square bg-gray-100 border border-gray-200';
+    
+    photoCard.innerHTML = `
+        <img src="${src}" alt="Фото класу" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-end justify-between p-4">
+            <span class="text-white font-medium text-xs">Додане фото</span>
+        </div>
+    `;
+
+    galleryGrid.appendChild(photoCard);
+}
         <!-- Оновлений скрипт вітального вікна та ТАБЛИЦІ учнів -->
         document.addEventListener("DOMContentLoaded", () => {
             const welcomeScreen = document.getElementById('welcome-screen');

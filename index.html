@@ -165,6 +165,10 @@
     <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl transform scale-95 transition-transform duration-300" id="event-modal-content">
         <div class="flex justify-between items-center mb-5">
             <h3 class="text-xl font-bold text-gray-900">Додати нову подію</h3>
+            <button id="addEventBtn" class="action-btn" style="display: none;">
+      <i class="icon-plus"></i> Додати подію
+    </button>
+  </div>
             <button id="close-event-modal" class="text-gray-400 hover:text-gray-600 focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
@@ -192,6 +196,10 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Опис події</label>
                 <textarea id="event-desc" rows="4" class="w-full border-gray-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 px-4 py-2 border" placeholder="Розкажіть, як все пройшло..."></textarea>
             </div>
+            <div class="modal-actions">
+        <button type="button" id="closeEventModal" class="btn-cancel">Скасувати</button>
+        <button type="submit" class="btn-submit">Опублікувати</button>
+      </div>
             <button id="submit-event-btn" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition-all">
                 Зберегти подію
             </button>

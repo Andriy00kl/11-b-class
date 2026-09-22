@@ -426,14 +426,12 @@
         measurementId: "G-2QTPJ3W33D"
     };
 
-    // Ініціалізація Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Об'єднуємо все в один DOMContentLoaded, щоб уникнути конфліктів
     document.addEventListener("DOMContentLoaded", () => {
         
-        // --- ОСНОВНІ ЕЛЕМЕНТИ ---
+        // Основні елементи
         const welcomeScreen = document.getElementById('welcome-screen');
         const userNameInput = document.getElementById('userName');
         const userNickInput = document.getElementById('userNick');
@@ -441,49 +439,80 @@
         const btnGuest = document.getElementById('btn-guest');
         const userRoleInput = document.getElementById('userRole');
         const enterBtn = document.getElementById('enter-site-btn');
-        const galleryGrid = document.getElementById('gallery-grid'); // Оголошуємо один раз тут!
+        const galleryGrid = document.getElementById('gallery-grid');
+        const eventsGrid = document.getElementById('events-grid');
 
-        // --- ПЕРЕВІРКА РОЛІ ТА ДОСТУПУ ДО ЗАВАНТАЖЕННЯ ФОТО ---
-        function setupUploadAccess() {
+        // Модальне вікно подій
+        const eventModal = document.getElementById('event-modal');
+        const closeEventModalBtn = document.getElementById('close-event-modal');
+        const submitEventBtn = document.getElementById('submit-event-btn');
+
+        // --- ПЕРЕВІРКА ДОСТУПУ (Учень / Гість) ---
+        function setupAccess() {
             const role = localStorage.getItem('visitorRole');
             const uploadContainer = document.getElementById('upload-container');
+            const addEventContainer = document.getElementById('add-event-container');
 
-            if (!uploadContainer) return;
+            // 1. Доступ до додавання фото
+            if (uploadContainer) {
+                if (role === 'Учень 11-Б') {
+                    uploadContainer.innerHTML = `
+                        <input type="file" id="photo-upload-input" accept="image/*" multiple class="hidden">
+                        <label for="photo-upload-input" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all cursor-pointer transform hover:scale-105 active:scale-95">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Додати фотографію
+                        </label>
+                    `;
+                    initPhotoUploadListener();
+                } else {
+                    uploadContainer.innerHTML = `
+                        <div class="bg-gray-100 border border-gray-200 text-gray-600 text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2">
+                            <span>🔒</span> Додавати фотографії можуть лише учні 11-Б класу
+                        </div>
+                    `;
+                }
+            }
 
-            if (role === 'Учень 11-Б') {
-                uploadContainer.innerHTML = `
-                    <input type="file" id="photo-upload-input" accept="image/*" multiple class="hidden">
-                    <label for="photo-upload-input" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all cursor-pointer transform hover:scale-105 active:scale-95">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        Додати фотографію
-                    </label>
-                `;
-                initPhotoUploadListener();
-            } else {
-                uploadContainer.innerHTML = `
-                    <div class="bg-gray-100 border border-gray-200 text-gray-600 text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2">
-                        <span>🔒</span> Додавати фотографії можуть лише учні 11-Б класу
-                    </div>
-                `;
+            // 2. Доступ до додавання подій
+            if (addEventContainer) {
+                if (role === 'Учень 11-Б') {
+                    addEventContainer.innerHTML = `
+                        <button id="open-event-modal-btn" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all cursor-pointer transform hover:scale-105 active:scale-95">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Додати подію
+                        </button>
+                    `;
+                    const openBtn = document.getElementById('open-event-modal-btn');
+                    if (openBtn) openBtn.addEventListener('click', openEventModal);
+                } else {
+                    addEventContainer.innerHTML = `
+                        <div class="bg-gray-100 border border-gray-200 text-gray-600 text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2">
+                            <span>🔒</span> Додавати події можуть лише учні 11-Б класу
+                        </div>
+                    `;
+                }
             }
         }
 
-        // Перевіряємо при запуску, чи людина вже заходила
+        // --- ВІТАЛЬНЕ ВІКНО ---
         if (localStorage.getItem('siteVisited') === 'true') {
             if (welcomeScreen) welcomeScreen.style.display = 'none';
             document.body.style.overflow = 'auto';
-            setupUploadAccess();
+            setupAccess();
         } else {
             document.body.style.overflow = 'hidden';
         }
 
-        // --- ВІТАЛЬНЕ ВІКНО ---
         function selectRole(role, activeBtn, inactiveBtn) {
-            userRoleInput.value = role;
-            activeBtn.classList.remove('border-gray-200', 'text-gray-600');
-            activeBtn.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-700');
-            inactiveBtn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-700');
-            inactiveBtn.classList.add('border-gray-200', 'text-gray-600');
+            if (userRoleInput) userRoleInput.value = role;
+            if (activeBtn) {
+                activeBtn.classList.remove('border-gray-200', 'text-gray-600');
+                activeBtn.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-700');
+            }
+            if (inactiveBtn) {
+                inactiveBtn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-700');
+                inactiveBtn.classList.add('border-gray-200', 'text-gray-600');
+            }
             checkFormValidity();
         }
 
@@ -495,6 +524,7 @@
         if (userNameInput) userNameInput.addEventListener('input', checkFormValidity);
 
         function checkFormValidity() {
+            if (!enterBtn || !userNameInput || !userRoleInput) return;
             if (userNameInput.value.trim() !== '' && userRoleInput.value !== '') {
                 enterBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 enterBtn.removeAttribute('disabled');
@@ -507,7 +537,7 @@
         if (enterBtn) {
             enterBtn.addEventListener('click', () => {
                 const name = userNameInput.value.trim();
-                const nick = userNickInput.value.trim();
+                const nick = userNickInput ? userNickInput.value.trim() : '';
                 const role = userRoleInput.value;
 
                 localStorage.setItem('siteVisited', 'true');
@@ -516,25 +546,113 @@
                 if (nick) localStorage.setItem('visitorNick', nick);
 
                 if (role === 'Учень 11-Б') {
-                    db.ref('students').push({
-                        name: name,
-                        nick: nick || ''
-                    });
+                    db.ref('students').push({ name: name, nick: nick || '' });
                 }
 
-                setupUploadAccess();
+                setupAccess();
 
-                welcomeScreen.classList.add('opacity-0');
+                if (welcomeScreen) {
+                    welcomeScreen.classList.add('opacity-0');
+                    setTimeout(() => { welcomeScreen.style.display = 'none'; }, 500);
+                }
                 document.body.style.overflow = 'auto';
-                setTimeout(() => { welcomeScreen.style.display = 'none'; }, 500);
             });
         }
 
-        // --- СИНХРОНІЗАЦІЯ ТАБЛИЦІ УЧНІВ ЧЕРЕЗ FIREBASE ---
+        // --- МОДАЛЬНЕ ВІКНО ПОДІЙ ---
+        function openEventModal() {
+            if (!eventModal) return;
+            eventModal.classList.remove('hidden');
+            setTimeout(() => {
+                eventModal.classList.remove('opacity-0');
+            }, 10);
+        }
+
+        function closeEventModal() {
+            if (!eventModal) return;
+            eventModal.classList.add('opacity-0');
+            setTimeout(() => {
+                eventModal.classList.add('hidden');
+            }, 300);
+        }
+
+        if (closeEventModalBtn) closeEventModalBtn.addEventListener('click', closeEventModal);
+
+        if (submitEventBtn) {
+            submitEventBtn.addEventListener('click', () => {
+                const title = document.getElementById('event-title')?.value.trim();
+                const category = document.getElementById('event-category')?.value;
+                const date = document.getElementById('event-date')?.value;
+                const desc = document.getElementById('event-desc')?.value.trim();
+
+                if (!title || !date || !desc) {
+                    alert('Будь ласка, заповніть усі поля!');
+                    return;
+                }
+
+                db.ref('events').push({
+                    title: title,
+                    category: category,
+                    date: date,
+                    desc: desc,
+                    author: localStorage.getItem('visitorName') || 'Учень 11-Б'
+                });
+
+                // Очищаємо поля та закриваємо
+                document.getElementById('event-title').value = '';
+                document.getElementById('event-date').value = '';
+                document.getElementById('event-desc').value = '';
+                closeEventModal();
+            });
+        }
+
+        // --- ВІДОБРАЖЕННЯ ПОДІЙ З FIREBASE ---
+        db.ref('events').on('value', (snapshot) => {
+            if (!eventsGrid) return;
+            eventsGrid.innerHTML = '';
+            const data = snapshot.val();
+
+            if (data) {
+                Object.values(data).reverse().forEach(event => {
+                    let badgeClass = "bg-blue-100 text-blue-800";
+                    let badgeIcon = "📅";
+                    if (event.category === 'Поїздка') {
+                        badgeClass = "bg-yellow-100 text-yellow-800";
+                        badgeIcon = "🚌";
+                    } else if (event.category === 'Досягнення') {
+                        badgeClass = "bg-green-100 text-green-800";
+                        badgeIcon = "🏆";
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col justify-between hover:shadow-lg transition";
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}">
+                                    ${badgeIcon} ${event.category}
+                                </span>
+                                <span class="text-xs text-gray-400 font-medium">${event.date}</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">${event.title}</h3>
+                            <p class="text-gray-600 text-sm mb-4 leading-relaxed">${event.desc}</p>
+                        </div>
+                        <div class="text-xs text-gray-400 border-t pt-3 mt-2">
+                            Додав(ла): <span class="font-medium text-gray-600">${event.author}</span>
+                        </div>
+                    `;
+                    eventsGrid.appendChild(card);
+                });
+            } else {
+                eventsGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Поки немає жодної події. Будьте першими!</p>`;
+            }
+        });
+
+        // --- ТАБЛИЦЯ УЧНІВ ---
         db.ref('students').on('value', (snapshot) => {
             const tbody = document.getElementById('students-table-body');
             if (!tbody) return;
-            tbody.innerHTML = ''; // Очищаємо таблицю перед оновленням
+            tbody.innerHTML = '';
 
             const data = snapshot.val();
             if (data) {
@@ -543,7 +661,6 @@
 
                 Object.values(data).forEach(student => {
                     const isYou = currentName && currentName.toLowerCase() === student.name.toLowerCase();
-                    
                     const tr = document.createElement('tr');
                     tr.className = `hover:bg-gray-50 transition ${isYou ? 'bg-blue-50/80 font-medium' : ''}`;
                     tr.innerHTML = `
@@ -566,7 +683,7 @@
             }
         });
 
-        // --- ЗАВАНТАЖЕННЯ ФОТО У FIREBASE ---
+        // --- ЗАВАНТАЖЕННЯ ФОТО ---
         function initPhotoUploadListener() {
             const photoInput = document.getElementById('photo-upload-input');
             if (!photoInput) return;
@@ -575,10 +692,8 @@
                 const files = Array.from(e.target.files);
                 files.forEach(file => {
                     if (!file.type.startsWith('image/')) return;
-
                     const reader = new FileReader();
                     reader.onload = (event) => {
-                        // Відправляємо фото відразу у базу даних Firebase
                         db.ref('photos').push({
                             src: event.target.result,
                             author: localStorage.getItem('visitorName') || 'Учень 11-Б'
@@ -590,12 +705,10 @@
             });
         }
 
-        // --- ВІДОБРАЖЕННЯ ГАЛЕРЕЇ ФОТО ЧЕРЕЗ FIREBASE ---
+        // --- ГАЛЕРЕЯ ФОТО ---
         db.ref('photos').on('value', (snapshot) => {
             if (!galleryGrid) return;
-            
             const data = snapshot.val();
-            // Очищаємо галерею перед рендером
             document.querySelectorAll('.uploaded-firebase-photo').forEach(el => el.remove());
 
             if (data) {
@@ -613,25 +726,22 @@
             }
         });
 
-        // --- ФОТО НА ВЕСЬ ЕКРАН (LIGHTBOX) ---
+        // --- LIGHTBOX (Перегляд фото на весь екран) ---
         const lightboxModal = document.getElementById('lightbox-modal');
         const lightboxImg = document.getElementById('lightbox-img');
         const lightboxClose = document.getElementById('lightbox-close');
 
         if (galleryGrid && lightboxModal) {
-            // Слухаємо кліки по всій галереї
             galleryGrid.addEventListener('click', (e) => {
                 const img = e.target.closest('img');
-                if (img) {
+                if (img && lightboxImg) {
                     lightboxImg.src = img.src; 
                     lightboxModal.classList.remove('hidden');
-                    
                     setTimeout(() => {
                         lightboxModal.classList.remove('opacity-0');
                         lightboxImg.classList.remove('scale-95');
                         lightboxImg.classList.add('scale-100');
                     }, 10);
-                    
                     document.body.style.overflow = 'hidden';
                 }
             });
@@ -640,140 +750,43 @@
         function closeLightbox() {
             if (!lightboxModal) return;
             lightboxModal.classList.add('opacity-0');
-            lightboxImg.classList.remove('scale-100');
-            lightboxImg.classList.add('scale-95');
-            
+            if (lightboxImg) {
+                lightboxImg.classList.remove('scale-100');
+                lightboxImg.classList.add('scale-95');
+            }
             setTimeout(() => {
                 lightboxModal.classList.add('hidden');
-                lightboxImg.src = '';
-                if (document.getElementById('welcome-screen').style.display === 'none') {
+                if (lightboxImg) lightboxImg.src = '';
+                if (!welcomeScreen || welcomeScreen.style.display === 'none') {
                     document.body.style.overflow = 'auto';
                 }
             }, 300);
         }
 
         if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
-        if (lightboxModal) lightboxModal.addEventListener('click', (e) => {
-            if (e.target === lightboxModal) closeLightbox();
-        });
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && lightboxModal && !lightboxModal.classList.contains('hidden')) {
-                closeLightbox();
-            }
-        });
+        if (lightboxModal) {
+            lightboxModal.addEventListener('click', (e) => {
+                if (e.target === lightboxModal) closeLightbox();
+            });
+        }
 
-        // --- ЛОГІКА МОБІЛЬНОГО МЕНЮ ---
+        // --- МОБІЛЬНЕ МЕНЮ ---
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
         const menuIcon = document.getElementById('menu-icon');
-        const iconMenu = "M4 6h16M4 12h16M4 18h16";
-        const iconClose = "M6 18L18 6M6 6l12 12";
 
         if (mobileMenuBtn && mobileMenu && menuIcon) {
             mobileMenuBtn.addEventListener('click', () => {
                 mobileMenu.classList.toggle('hidden');
-                menuIcon.setAttribute('d', mobileMenu.classList.contains('hidden') ? iconMenu : iconClose);
             });
 
             document.querySelectorAll('.mobile-nav-link').forEach(link => {
                 link.addEventListener('click', () => {
                     mobileMenu.classList.add('hidden');
-                    menuIcon.setAttribute('d', iconMenu);
                 });
             });
         }
-
-        const navbar = document.getElementById('navbar');
-        if (navbar) {
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 10) {
-                    navbar.classList.add('shadow-md');
-                    navbar.classList.remove('shadow-sm');
-                } else {
-                    navbar.classList.add('shadow-sm');
-                    navbar.classList.remove('shadow-md');
-                }
-            });
-        }
     });
-    document.addEventListener('DOMContentLoaded', () => {
-  // Емуляція авторизації. У реальному проекті це значення приходить з бекенду або LocalStorage
-  // Варіанти: 'student_11B', 'guest'
-  const currentUserRole = 'student_11B'; 
-
-  const addEventBtn = document.getElementById('addEventBtn');
-  const eventModal = document.getElementById('eventModal');
-  const closeEventModal = document.getElementById('closeEventModal');
-  const eventForm = document.getElementById('eventForm');
-  const eventsContainer = document.getElementById('eventsContainer');
-
-  // 1. Перевірка доступу (показуємо кнопку тільки для 11-Б)
-  if (currentUserRole === 'student_11B') {
-    addEventBtn.style.display = 'inline-flex';
-  }
-
-  // 2. Відкриття та закриття модального вікна
-  addEventBtn.addEventListener('click', () => {
-    eventModal.classList.add('active');
-  });
-
-  closeEventModal.addEventListener('click', () => {
-    eventModal.classList.remove('active');
-    eventForm.reset();
-  });
-
-  // Закриття при кліку поза вікном
-  window.addEventListener('click', (e) => {
-    if (e.target === eventModal) {
-      eventModal.classList.remove('active');
-      eventForm.reset();
-    }
-  });
-
-  // 3. Обробка відправки форми
-  eventForm.addEventListener('submit', (e) => {
-    e.preventDefault(); // Зупиняємо перезавантаження сторінки
-
-    // Збираємо дані
-    const eventData = {
-      title: document.getElementById('eventTitle').value,
-      type: document.getElementById('eventType').value,
-      date: document.getElementById('eventDate').value,
-      description: document.getElementById('eventDescription').value
-    };
-
-    // Тут має бути функція відправки даних на сервер (fetch / axios / Firebase)
-    // Наприклад: saveEventToDatabase(eventData);
-
-    // Візуально додаємо подію на сторінку одразу (для демонстрації)
-    renderEventCard(eventData);
-
-    // Закриваємо і чистимо форму
-    eventModal.classList.remove('active');
-    eventForm.reset();
-  });
-
-  // 4. Функція малювання картки події
-  function renderEventCard(data) {
-    // Форматування дати у зручний вигляд (наприклад: 24 жовтня 2023)
-    const dateObj = new Date(data.date);
-    const formattedDate = dateObj.toLocaleDateString('uk-UA', { 
-      day: 'numeric', month: 'long', year: 'numeric' 
-    });
-
-    const card = document.createElement('div');
-    card.className = 'event-card';
-    card.innerHTML = `
-      <div class="event-badge">${data.type}</div>
-      <h3>${data.title}</h3>
-      <span class="event-date">${formattedDate}</span>
-      <p>${data.description}</p>
-    `;
-
-    // Додаємо нову подію на початок списку
-    eventsContainer.prepend(card);
-  }
-});
     document.getElementById('secretBtn').addEventListener('click', function() {
             // Знаходимо всі назви предметів (другий span всередині кожного <li> в розкладі)
             const subjects = document.querySelectorAll('#schedule li span:nth-child(2)');

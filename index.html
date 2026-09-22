@@ -675,6 +675,33 @@
             });
         }
     });
+    document.getElementById('secretBtn').addEventListener('click', function() {
+            // Знаходимо всі назви предметів (другий span всередині кожного <li> в розкладі)
+            const subjects = document.querySelectorAll('#schedule li span:nth-child(2)');
+
+            subjects.forEach(span => {
+                // Отримуємо текст предмета
+                const text = span.textContent.trim();
+
+                // Шукаємо потрібні предмети
+                if (text === 'Біологія' || text === 'Хімія' || text === 'Англійська мова') {
+                    
+                    // Якщо предмет ще не змінений
+                    if (!span.classList.contains('secret-activated')) {
+                        // Зберігаємо оригінальну назву
+                        span.setAttribute('data-original', text);
+                        span.classList.add('secret-activated');
+
+                        // Додаємо перекреслення червоним та новий предмет знизу
+                        span.innerHTML = `<span class="line-through text-red-500">${text}</span><br><span class="text-green-600 font-bold text-sm mt-1 inline-block">Фізична культура</span>`;
+                    } else {
+                        // Якщо натиснути ще раз - повертаємо звичайний розклад
+                        span.classList.remove('secret-activated');
+                        span.innerHTML = span.getAttribute('data-original');
+                    }
+                }
+            });
+        });
 </script>
     </script>
 </body>

@@ -565,8 +565,8 @@
         }
 
         db.ref('photos').on('value', (snapshot) => {
-            const galleryGrid = document.getElementById('gallery-grid');
-            if (!galleryGrid) return;
+            const myGrid = document.getElementById('gallery-grid');
+            if (!myGrid) return;
             
             const data = snapshot.val();
             document.querySelectorAll('.uploaded-firebase-photo').forEach(el => el.remove());
@@ -634,7 +634,7 @@
         });
         // --- ЛОГІКА ГАЛЕРЕЇ ФОТОГРАФІЙ ---
 const photoInput = document.getElementById('photo-upload-input');
-const galleryGrid = document.getElementById('gallery-grid');
+const myGrid = document.getElementById('gallery-grid');
 
 // 1. Завантажуємо збережені користувачем фотографії з пам'яті
 loadSavedPhotos();

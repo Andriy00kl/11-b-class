@@ -101,8 +101,9 @@
         <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 shadow-lg absolute w-full">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                 <a href="#home" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-indigo-50">Головна</a>
-                <a href="#news" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-indigo-50">Новини</a>
+                <a href="#events" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50">Події</a>
                 <a href="#schedule" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-indigo-50">Розклад</a>
+                <a href="#gallery" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50">Фотографії</a>
                 <a href="#students" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-indigo-50">Учні</a>
             </div>
         </div>
@@ -141,50 +142,62 @@
             </div>
         </section>
 
-        <!-- Секція Новин -->
-        <section id="news" class="py-20 bg-white">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Останні новини</h2>
-                    <p class="mt-4 text-lg text-gray-500">Будьте в курсі подій нашого класу.</p>
+        <!-- Секція Подій -->
+<section id="events" class="py-16 bg-gray-50 border-t border-gray-200">
+    <div class="container mx-auto px-4 max-w-6xl">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Літопис класу</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">Найважливіші події, поїздки та досягнення нашого 11-Б.</p>
+        </div>
+
+        <!-- Контейнер для кнопки додавання події (Генерується через JS) -->
+        <div id="add-event-container" class="flex justify-center mb-10"></div>
+
+        <!-- Сітка подій -->
+        <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Події генеруватимуться тут -->
+        </div>
+    </div>
+</section>
+
+<!-- Модальне вікно створення події -->
+<div id="event-modal" class="fixed inset-0 z-[60] hidden bg-black/60 flex items-center justify-center opacity-0 transition-opacity duration-300 px-4">
+    <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl transform scale-95 transition-transform duration-300" id="event-modal-content">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-xl font-bold text-gray-900">Додати нову подію</h3>
+            <button id="close-event-modal" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Тема події</label>
+                <input type="text" id="event-title" class="w-full border-gray-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 px-4 py-2 border" placeholder="Наприклад: Поїздка в Карпати">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Категорія</label>
+                    <select id="event-category" class="w-full border-gray-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 px-4 py-2 border">
+                        <option value="Подія">📅 Подія</option>
+                        <option value="Поїздка">🚌 Поїздка</option>
+                        <option value="Досягнення">🏆 Досягнення</option>
+                    </select>
                 </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Картка новини 1 -->
-                    <article class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-                        <img class="h-48 w-full object-cover" src="https://placehold.co/600x400/e2e8f0/475569?text=Фото+події" alt="Новина 1">
-                        <div class="p-6">
-                            <p class="text-sm font-medium text-primary mb-1">Подія</p>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">Підготовка до випускного</h3>
-                            <p class="text-gray-600 mb-4 line-clamp-3">Ми розпочали обговорення деталей нашого майбутнього випускного вечора. Всі пропозиції приймаються до кінця тижня.</p>
-                            <span class="text-xs text-gray-400">12 Вересня 2026</span>
-                        </div>
-                    </article>
-
-                    <!-- Картка новини 2 -->
-                    <article class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-                        <img class="h-48 w-full object-cover" src="https://placehold.co/600x400/e2e8f0/475569?text=Олімпіада" alt="Новина 2">
-                        <div class="p-6">
-                            <p class="text-sm font-medium text-secondary mb-1">Досягнення</p>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">Перемога на олімпіаді</h3>
-                            <p class="text-gray-600 mb-4 line-clamp-3">Вітаємо нашого однокласника з першим місцем на міській олімпіаді з математики! Пишаємося твоїми успіхами.</p>
-                            <span class="text-xs text-gray-400">05 Вересня 2026</span>
-                        </div>
-                    </article>
-
-                    <!-- Картка новини 3 -->
-                    <article class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-                        <img class="h-48 w-full object-cover" src="https://placehold.co/600x400/e2e8f0/475569?text=Екскурсія" alt="Новина 3">
-                        <div class="p-6">
-                            <p class="text-sm font-medium text-green-500 mb-1">Поїздка</p>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">Осіння екскурсія</h3>
-                            <p class="text-gray-600 mb-4 line-clamp-3">Наступного місяця планується поїздка до Карпат. Будь ласка, здайте згоди від батьків класному керівнику.</p>
-                            <span class="text-xs text-gray-400">01 Вересня 2026</span>
-                        </div>
-                    </article>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Дата</label>
+                    <input type="date" id="event-date" class="w-full border-gray-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 px-4 py-2 border">
                 </div>
             </div>
-        </section>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Опис події</label>
+                <textarea id="event-desc" rows="4" class="w-full border-gray-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 px-4 py-2 border" placeholder="Розкажіть, як все пройшло..."></textarea>
+            </div>
+            <button id="submit-event-btn" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition-all">
+                Зберегти подію
+            </button>
+        </div>
+    </div>
+</div>
 
         <!-- ПОЧАТОК СЕКЦІЇ РОЗКЛАДУ -->
 <section id="schedule" class="py-20 bg-gray-50">
@@ -675,6 +688,84 @@
             });
         }
     });
+    document.addEventListener('DOMContentLoaded', () => {
+  // Емуляція авторизації. У реальному проекті це значення приходить з бекенду або LocalStorage
+  // Варіанти: 'student_11B', 'guest'
+  const currentUserRole = 'student_11B'; 
+
+  const addEventBtn = document.getElementById('addEventBtn');
+  const eventModal = document.getElementById('eventModal');
+  const closeEventModal = document.getElementById('closeEventModal');
+  const eventForm = document.getElementById('eventForm');
+  const eventsContainer = document.getElementById('eventsContainer');
+
+  // 1. Перевірка доступу (показуємо кнопку тільки для 11-Б)
+  if (currentUserRole === 'student_11B') {
+    addEventBtn.style.display = 'inline-flex';
+  }
+
+  // 2. Відкриття та закриття модального вікна
+  addEventBtn.addEventListener('click', () => {
+    eventModal.classList.add('active');
+  });
+
+  closeEventModal.addEventListener('click', () => {
+    eventModal.classList.remove('active');
+    eventForm.reset();
+  });
+
+  // Закриття при кліку поза вікном
+  window.addEventListener('click', (e) => {
+    if (e.target === eventModal) {
+      eventModal.classList.remove('active');
+      eventForm.reset();
+    }
+  });
+
+  // 3. Обробка відправки форми
+  eventForm.addEventListener('submit', (e) => {
+    e.preventDefault(); // Зупиняємо перезавантаження сторінки
+
+    // Збираємо дані
+    const eventData = {
+      title: document.getElementById('eventTitle').value,
+      type: document.getElementById('eventType').value,
+      date: document.getElementById('eventDate').value,
+      description: document.getElementById('eventDescription').value
+    };
+
+    // Тут має бути функція відправки даних на сервер (fetch / axios / Firebase)
+    // Наприклад: saveEventToDatabase(eventData);
+
+    // Візуально додаємо подію на сторінку одразу (для демонстрації)
+    renderEventCard(eventData);
+
+    // Закриваємо і чистимо форму
+    eventModal.classList.remove('active');
+    eventForm.reset();
+  });
+
+  // 4. Функція малювання картки події
+  function renderEventCard(data) {
+    // Форматування дати у зручний вигляд (наприклад: 24 жовтня 2023)
+    const dateObj = new Date(data.date);
+    const formattedDate = dateObj.toLocaleDateString('uk-UA', { 
+      day: 'numeric', month: 'long', year: 'numeric' 
+    });
+
+    const card = document.createElement('div');
+    card.className = 'event-card';
+    card.innerHTML = `
+      <div class="event-badge">${data.type}</div>
+      <h3>${data.title}</h3>
+      <span class="event-date">${formattedDate}</span>
+      <p>${data.description}</p>
+    `;
+
+    // Додаємо нову подію на початок списку
+    eventsContainer.prepend(card);
+  }
+});
     document.getElementById('secretBtn').addEventListener('click', function() {
             // Знаходимо всі назви предметів (другий span всередині кожного <li> в розкладі)
             const subjects = document.querySelectorAll('#schedule li span:nth-child(2)');

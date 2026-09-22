@@ -585,74 +585,7 @@
                 });
             }
         });
-        // --- ФОТО НА ВЕСЬ ЕКРАН (LIGHTBOX) ---
-const lightboxModal = document.getElementById('lightbox-modal');
-const lightboxImg = document.getElementById('lightbox-img');
-const lightboxClose = document.getElementById('lightbox-close');
-const galleryGrid = document.getElementById('gallery-grid');
-
-// Відкриття фото при кліку на галерею
-if (galleryGrid) {
-    galleryGrid.addEventListener('click', (e) => {
-        // Шукаємо картинку, по якій клікнули
-        const img = e.target.closest('img');
-        if (img) {
-            lightboxImg.src = img.src; // Передаємо джерело клікнутої картинки в модалку
-            
-            // Показуємо модальне вікно
-            lightboxModal.classList.remove('hidden');
-            
-            // Затримка для плавної анімації
-            setTimeout(() => {
-                lightboxModal.classList.remove('opacity-0');
-                lightboxImg.classList.remove('scale-95');
-                lightboxImg.classList.add('scale-100');
-            }, 10);
-            
-            // Забороняємо прокрутку сторінки, поки відкрито фото
-            document.body.style.overflow = 'hidden';
-        }
-    });
-}
-
-// Функція закриття фото
-function closeLightbox() {
-    lightboxModal.classList.add('opacity-0');
-    lightboxImg.classList.remove('scale-100');
-    lightboxImg.classList.add('scale-95');
-    
-    // Чекаємо закінчення анімації перед тим, як приховати елемент
-    setTimeout(() => {
-        lightboxModal.classList.add('hidden');
-        lightboxImg.src = '';
         
-        // Повертаємо прокрутку сторінки (якщо ми не на екрані привітання)
-        if (document.getElementById('welcome-screen').style.display === 'none') {
-            document.body.style.overflow = 'auto';
-        }
-    }, 300);
-}
-
-// Закриття по кліку на хрестик
-if (lightboxClose) {
-    lightboxClose.addEventListener('click', closeLightbox);
-}
-
-// Закриття по кліку на темний фон навколо фото
-if (lightboxModal) {
-    lightboxModal.addEventListener('click', (e) => {
-        if (e.target === lightboxModal) {
-            closeLightbox();
-        }
-    });
-}
-
-// Закриття по кнопці Escape на клавіатурі
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !lightboxModal.classList.contains('hidden')) {
-        closeLightbox();
-    }
-});
     });
     
 
@@ -757,6 +690,75 @@ function addPhotoToDOM(src) {
     `;
 
     galleryGrid.appendChild(photoCard);
+
+    // --- ФОТО НА ВЕСЬ ЕКРАН (LIGHTBOX) ---
+const lightboxModal = document.getElementById('lightbox-modal');
+const lightboxImg = document.getElementById('lightbox-img');
+const lightboxClose = document.getElementById('lightbox-close');
+const galleryGrid = document.getElementById('gallery-grid');
+
+// Відкриття фото при кліку на галерею
+if (galleryGrid) {
+    galleryGrid.addEventListener('click', (e) => {
+        // Шукаємо картинку, по якій клікнули
+        const img = e.target.closest('img');
+        if (img) {
+            lightboxImg.src = img.src; // Передаємо джерело клікнутої картинки в модалку
+            
+            // Показуємо модальне вікно
+            lightboxModal.classList.remove('hidden');
+            
+            // Затримка для плавної анімації
+            setTimeout(() => {
+                lightboxModal.classList.remove('opacity-0');
+                lightboxImg.classList.remove('scale-95');
+                lightboxImg.classList.add('scale-100');
+            }, 10);
+            
+            // Забороняємо прокрутку сторінки, поки відкрито фото
+            document.body.style.overflow = 'hidden';
+        }
+    });
+}
+
+// Функція закриття фото
+function closeLightbox() {
+    lightboxModal.classList.add('opacity-0');
+    lightboxImg.classList.remove('scale-100');
+    lightboxImg.classList.add('scale-95');
+    
+    // Чекаємо закінчення анімації перед тим, як приховати елемент
+    setTimeout(() => {
+        lightboxModal.classList.add('hidden');
+        lightboxImg.src = '';
+        
+        // Повертаємо прокрутку сторінки (якщо ми не на екрані привітання)
+        if (document.getElementById('welcome-screen').style.display === 'none') {
+            document.body.style.overflow = 'auto';
+        }
+    }, 300);
+}
+
+// Закриття по кліку на хрестик
+if (lightboxClose) {
+    lightboxClose.addEventListener('click', closeLightbox);
+}
+
+// Закриття по кліку на темний фон навколо фото
+if (lightboxModal) {
+    lightboxModal.addEventListener('click', (e) => {
+        if (e.target === lightboxModal) {
+            closeLightbox();
+        }
+    });
+}
+
+// Закриття по кнопці Escape на клавіатурі
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !lightboxModal.classList.contains('hidden')) {
+        closeLightbox();
+    }
+});
 }
 
         <!-- Оновлений скрипт вітального вікна та ТАБЛИЦІ учнів -->

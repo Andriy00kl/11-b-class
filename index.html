@@ -396,7 +396,7 @@
 
     // Правильна ініціалізація для Web CDN
 firebase.initializeApp(firebaseConfig); 
-const analytics = getAnalytics(app);
+const db = firebase.database();
 
     document.addEventListener("DOMContentLoaded", () => {
         const welcomeScreen = document.getElementById('welcome-screen');

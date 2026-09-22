@@ -405,11 +405,14 @@
         measurementId: "G-2QTPJ3W33D"
     };
 
-    // Правильна ініціалізація для Web CDN
-    firebase.initializeApp(firebaseConfig); 
+    // Ініціалізація Firebase
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // Об'єднуємо все в один DOMContentLoaded, щоб уникнути конфліктів
     document.addEventListener("DOMContentLoaded", () => {
+        
+        // --- ОСНОВНІ ЕЛЕМЕНТИ ---
         const welcomeScreen = document.getElementById('welcome-screen');
         const userNameInput = document.getElementById('userName');
         const userNickInput = document.getElementById('userNick');
@@ -417,6 +420,7 @@
         const btnGuest = document.getElementById('btn-guest');
         const userRoleInput = document.getElementById('userRole');
         const enterBtn = document.getElementById('enter-site-btn');
+        const galleryGrid = document.getElementById('gallery-grid'); // Оголошуємо один раз тут!
 
         // --- ПЕРЕВІРКА РОЛІ ТА ДОСТУПУ ДО ЗАВАНТАЖЕННЯ ФОТО ---
         function setupUploadAccess() {
@@ -443,10 +447,10 @@
             }
         }
 
-        // Перевіряємо при запуску
+        // Перевіряємо при запуску, чи людина вже заходила
         if (localStorage.getItem('siteVisited') === 'true') {
             if (welcomeScreen) welcomeScreen.style.display = 'none';
-            document.body.style.overflow = 'auto'; 
+            document.body.style.overflow = 'auto';
             setupUploadAccess();
         } else {
             document.body.style.overflow = 'hidden';
@@ -500,16 +504,16 @@
                 setupUploadAccess();
 
                 welcomeScreen.classList.add('opacity-0');
-                document.body.style.overflow = 'auto'; 
+                document.body.style.overflow = 'auto';
                 setTimeout(() => { welcomeScreen.style.display = 'none'; }, 500);
             });
         }
 
-        // --- СИНХРОНІЗАЦІЯ ТАБЛИЦІ УЧНІВ У РЕАЛЬНОМУ ЧАСІ ---
+        // --- СИНХРОНІЗАЦІЯ ТАБЛИЦІ УЧНІВ ЧЕРЕЗ FIREBASE ---
         db.ref('students').on('value', (snapshot) => {
             const tbody = document.getElementById('students-table-body');
             if (!tbody) return;
-            tbody.innerHTML = '';
+            tbody.innerHTML = ''; // Очищаємо таблицю перед оновленням
 
             const data = snapshot.val();
             if (data) {
@@ -541,7 +545,7 @@
             }
         });
 
-        // --- СИНХРОНІЗАЦІЯ ГАЛЕРЕЇ ФОТО В РЕАЛЬНОМУ ЧАСІ ---
+        // --- ЗАВАНТАЖЕННЯ ФОТО У FIREBASE ---
         function initPhotoUploadListener() {
             const photoInput = document.getElementById('photo-upload-input');
             if (!photoInput) return;
@@ -553,6 +557,7 @@
 
                     const reader = new FileReader();
                     reader.onload = (event) => {
+                        // Відправляємо фото відразу у базу даних Firebase
                         db.ref('photos').push({
                             src: event.target.result,
                             author: localStorage.getItem('visitorName') || 'Учень 11-Б'
@@ -564,11 +569,12 @@
             });
         }
 
+        // --- ВІДОБРАЖЕННЯ ГАЛЕРЕЇ ФОТО ЧЕРЕЗ FIREBASE ---
         db.ref('photos').on('value', (snapshot) => {
-            const myGrid = document.getElementById('gallery-grid');
-            if (!myGrid) return;
+            if (!galleryGrid) return;
             
             const data = snapshot.val();
+            // Очищаємо галерею перед рендером
             document.querySelectorAll('.uploaded-firebase-photo').forEach(el => el.remove());
 
             if (data) {
@@ -577,7 +583,7 @@
                     photoCard.className = 'uploaded-firebase-photo relative group overflow-hidden rounded-2xl shadow-md aspect-square bg-gray-100 border border-gray-200';
                     photoCard.innerHTML = `
                         <img src="${photo.src}" alt="Фото класу" class="w-full h-full object-cover group-hover:scale-110 transition duration-500 cursor-pointer">
-                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-end justify-between p-4">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-end justify-between p-4 pointer-events-none">
                             <span class="text-white font-medium text-xs">Додав(ла): ${photo.author}</span>
                         </div>
                     `;
@@ -585,43 +591,79 @@
                 });
             }
         });
-        
-    });
-    
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Логіка мобільного меню
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-            const mobileMenu = document.getElementById('mobile-menu');
-            const menuIcon = document.getElementById('menu-icon');
-            
-            // Іконки для бургер-меню (відкрити/закрити)
-            const iconMenu = "M4 6h16M4 12h16M4 18h16";
-            const iconClose = "M6 18L18 6M6 6l12 12";
+        // --- ФОТО НА ВЕСЬ ЕКРАН (LIGHTBOX) ---
+        const lightboxModal = document.getElementById('lightbox-modal');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxClose = document.getElementById('lightbox-close');
 
-            function toggleMenu() {
-                mobileMenu.classList.toggle('hidden');
-                // Зміна іконки
-                if (mobileMenu.classList.contains('hidden')) {
-                    menuIcon.setAttribute('d', iconMenu);
-                } else {
-                    menuIcon.setAttribute('d', iconClose);
+        if (galleryGrid && lightboxModal) {
+            // Слухаємо кліки по всій галереї
+            galleryGrid.addEventListener('click', (e) => {
+                const img = e.target.closest('img');
+                if (img) {
+                    lightboxImg.src = img.src; 
+                    lightboxModal.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        lightboxModal.classList.remove('opacity-0');
+                        lightboxImg.classList.remove('scale-95');
+                        lightboxImg.classList.add('scale-100');
+                    }, 10);
+                    
+                    document.body.style.overflow = 'hidden';
                 }
+            });
+        }
+
+        function closeLightbox() {
+            if (!lightboxModal) return;
+            lightboxModal.classList.add('opacity-0');
+            lightboxImg.classList.remove('scale-100');
+            lightboxImg.classList.add('scale-95');
+            
+            setTimeout(() => {
+                lightboxModal.classList.add('hidden');
+                lightboxImg.src = '';
+                if (document.getElementById('welcome-screen').style.display === 'none') {
+                    document.body.style.overflow = 'auto';
+                }
+            }, 300);
+        }
+
+        if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+        if (lightboxModal) lightboxModal.addEventListener('click', (e) => {
+            if (e.target === lightboxModal) closeLightbox();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && lightboxModal && !lightboxModal.classList.contains('hidden')) {
+                closeLightbox();
             }
+        });
 
-            mobileMenuBtn.addEventListener('click', toggleMenu);
+        // --- ЛОГІКА МОБІЛЬНОГО МЕНЮ ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+        const iconMenu = "M4 6h16M4 12h16M4 18h16";
+        const iconClose = "M6 18L18 6M6 6l12 12";
 
-            // Закриття мобільного меню при кліку на посилання
-            const mobileLinks = document.querySelectorAll('.mobile-nav-link');
-            mobileLinks.forEach(link => {
+        if (mobileMenuBtn && mobileMenu && menuIcon) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                menuIcon.setAttribute('d', mobileMenu.classList.contains('hidden') ? iconMenu : iconClose);
+            });
+
+            document.querySelectorAll('.mobile-nav-link').forEach(link => {
                 link.addEventListener('click', () => {
                     mobileMenu.classList.add('hidden');
                     menuIcon.setAttribute('d', iconMenu);
                 });
             });
+        }
 
-            // Додавання тіні до навігації при прокрутці
-            const navbar = document.getElementById('navbar');
+        const navbar = document.getElementById('navbar');
+        if (navbar) {
             window.addEventListener('scroll', () => {
                 if (window.scrollY > 10) {
                     navbar.classList.add('shadow-md');
@@ -631,276 +673,9 @@
                     navbar.classList.remove('shadow-md');
                 }
             });
-        });
-        // --- ЛОГІКА ГАЛЕРЕЇ ФОТОГРАФІЙ ---
-const photoInput = document.getElementById('photo-upload-input');
-const galleryGrid = document.getElementById('gallery-grid');
-
-// 1. Завантажуємо збережені користувачем фотографії з пам'яті
-loadSavedPhotos();
-
-if (photoInput) {
-    photoInput.addEventListener('change', (e) => {
-        const files = Array.from(e.target.files);
-
-        files.forEach(file => {
-            if (!file.type.startsWith('image/')) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const base64Image = event.target.result;
-                saveAndRenderPhoto(base64Image);
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // Скидаємо інпут, щоб можна було вибрати той самий файл повторно
-        photoInput.value = '';
-    });
-}
-
-function saveAndRenderPhoto(imageData) {
-    let savedPhotos = JSON.parse(localStorage.getItem('uploadedClassPhotos') || '[]');
-    savedPhotos.push(imageData);
-    
-    try {
-        localStorage.setItem('uploadedClassPhotos', JSON.stringify(savedPhotos));
-        addPhotoToDOM(imageData);
-    } catch (err) {
-        alert('Пам’ять браузера заповнена! Спробуйте вибрати меншу фотографію.');
-    }
-}
-
-function loadSavedPhotos() {
-    const savedPhotos = JSON.parse(localStorage.getItem('uploadedClassPhotos') || '[]');
-    savedPhotos.forEach(imageData => addPhotoToDOM(imageData));
-}
-
-function addPhotoToDOM(src) {
-    if (!galleryGrid) return;
-
-    const photoCard = document.createElement('div');
-    photoCard.className = 'relative group overflow-hidden rounded-2xl shadow-md aspect-square bg-gray-100 border border-gray-200';
-    
-    photoCard.innerHTML = `
-        <img src="${src}" alt="Фото класу" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-end justify-between p-4">
-            <span class="text-white font-medium text-xs">Додане фото</span>
-        </div>
-    `;
-
-    galleryGrid.appendChild(photoCard);
-
-    // --- ФОТО НА ВЕСЬ ЕКРАН (LIGHTBOX) ---
-const lightboxModal = document.getElementById('lightbox-modal');
-const lightboxImg = document.getElementById('lightbox-img');
-const lightboxClose = document.getElementById('lightbox-close');
-const galleryGrid = document.getElementById('gallery-grid');
-
-// Відкриття фото при кліку на галерею
-if (galleryGrid) {
-    galleryGrid.addEventListener('click', (e) => {
-        // Шукаємо картинку, по якій клікнули
-        const img = e.target.closest('img');
-        if (img) {
-            lightboxImg.src = img.src; // Передаємо джерело клікнутої картинки в модалку
-            
-            // Показуємо модальне вікно
-            lightboxModal.classList.remove('hidden');
-            
-            // Затримка для плавної анімації
-            setTimeout(() => {
-                lightboxModal.classList.remove('opacity-0');
-                lightboxImg.classList.remove('scale-95');
-                lightboxImg.classList.add('scale-100');
-            }, 10);
-            
-            // Забороняємо прокрутку сторінки, поки відкрито фото
-            document.body.style.overflow = 'hidden';
         }
     });
-}
-
-// Функція закриття фото
-function closeLightbox() {
-    lightboxModal.classList.add('opacity-0');
-    lightboxImg.classList.remove('scale-100');
-    lightboxImg.classList.add('scale-95');
-    
-    // Чекаємо закінчення анімації перед тим, як приховати елемент
-    setTimeout(() => {
-        lightboxModal.classList.add('hidden');
-        lightboxImg.src = '';
-        
-        // Повертаємо прокрутку сторінки (якщо ми не на екрані привітання)
-        if (document.getElementById('welcome-screen').style.display === 'none') {
-            document.body.style.overflow = 'auto';
-        }
-    }, 300);
-}
-
-// Закриття по кліку на хрестик
-if (lightboxClose) {
-    lightboxClose.addEventListener('click', closeLightbox);
-}
-
-// Закриття по кліку на темний фон навколо фото
-if (lightboxModal) {
-    lightboxModal.addEventListener('click', (e) => {
-        if (e.target === lightboxModal) {
-            closeLightbox();
-        }
-    });
-}
-
-// Закриття по кнопці Escape на клавіатурі
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !lightboxModal.classList.contains('hidden')) {
-        closeLightbox();
-    }
-});
-}
-
-        <!-- Оновлений скрипт вітального вікна та ТАБЛИЦІ учнів -->
-        document.addEventListener("DOMContentLoaded", () => {
-            const welcomeScreen = document.getElementById('welcome-screen');
-            const userNameInput = document.getElementById('userName');
-            const userNickInput = document.getElementById('userNick');
-            const btnStudent = document.getElementById('btn-student');
-            const btnGuest = document.getElementById('btn-guest');
-            const userRoleInput = document.getElementById('userRole');
-            const enterBtn = document.getElementById('enter-site-btn');
-
-            // 1. Завантажуємо вже збережених учнів у таблицю
-            loadSavedStudents();
-
-            // 2. Перевіряємо, чи заходив користувач раніше
-            if (localStorage.getItem('siteVisited') === 'true') {
-                if (welcomeScreen) welcomeScreen.style.display = 'none';
-                document.body.style.overflow = 'auto'; 
-            } else {
-                document.body.style.overflow = 'hidden';
-            }
-
-            // 3. Перемикач ролей (11-Б / Гість)
-            function selectRole(role, activeBtn, inactiveBtn) {
-                userRoleInput.value = role;
-
-                activeBtn.classList.remove('border-gray-200', 'text-gray-600');
-                activeBtn.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-700');
-
-                inactiveBtn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-700');
-                inactiveBtn.classList.add('border-gray-200', 'text-gray-600');
-
-                checkFormValidity();
-            }
-
-            if (btnStudent && btnGuest) {
-                btnStudent.addEventListener('click', () => selectRole('Учень 11-Б', btnStudent, btnGuest));
-                btnGuest.addEventListener('click', () => selectRole('Гість', btnGuest, btnStudent));
-            }
-
-            if (userNameInput) {
-                userNameInput.addEventListener('input', checkFormValidity);
-            }
-
-            function checkFormValidity() {
-                if (userNameInput.value.trim() !== '' && userRoleInput.value !== '') {
-                    enterBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    enterBtn.removeAttribute('disabled');
-                } else {
-                    enterBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    enterBtn.setAttribute('disabled', 'true');
-                }
-            }
-
-            // 4. Клік на "Увійти на сайт"
-            if (enterBtn) {
-                enterBtn.addEventListener('click', () => {
-                    const name = userNameInput.value.trim();
-                    const nick = userNickInput.value.trim();
-                    const role = userRoleInput.value;
-
-                    // Зберігаємо дані відвідувача
-                    localStorage.setItem('siteVisited', 'true');
-                    localStorage.setItem('visitorName', name);
-                    localStorage.setItem('visitorRole', role);
-                    if (nick) localStorage.setItem('visitorNick', nick);
-
-                    // Якщо це учень 11-Б — додаємо його в таблицю
-                    if (role === 'Учень 11-Б') {
-                        saveAndRenderStudent(name, nick);
-                    }
-
-                    // Закриваємо модальне вікно
-                    welcomeScreen.classList.add('opacity-0');
-                    document.body.style.overflow = 'auto'; 
-                    
-                    setTimeout(() => {
-                        welcomeScreen.style.display = 'none';
-                    }, 500);
-                });
-            }
-
-            // --- ДОПОМІЖНІ ФУНКЦІЇ ДЛЯ ТАБЛИЦІ УЧНІВ ---
-
-            function saveAndRenderStudent(name, nick) {
-                let customStudents = JSON.parse(localStorage.getItem('customStudents') || '[]');
-                
-                const exists = customStudents.some(s => s.name.toLowerCase() === name.toLowerCase());
-                if (!exists) {
-                    const newStudent = { name, nick };
-                    customStudents.push(newStudent);
-                    localStorage.setItem('customStudents', JSON.stringify(customStudents));
-                    addStudentRowToDOM(name, nick, true);
-                }
-            }
-
-            function loadSavedStudents() {
-                const customStudents = JSON.parse(localStorage.getItem('customStudents') || '[]');
-                const currentName = localStorage.getItem('visitorName');
-
-                customStudents.forEach(student => {
-                    const isYou = currentName && currentName.toLowerCase() === student.name.toLowerCase();
-                    addStudentRowToDOM(student.name, student.nick, isYou);
-                });
-            }
-
-            // Генерація РЯДКА ТАБЛИЦІ (<tr>) та вставка в tbody
-            function addStudentRowToDOM(name, nick, isYou = false) {
-                const tbody = document.getElementById('students-table-body');
-                if (!tbody) return;
-
-                // Вираховуємо порядковий номер рядка (1, 2, 3...)
-                const rowNumber = tbody.children.length + 1;
-
-                const tr = document.createElement('tr');
-                tr.className = `hover:bg-gray-50 transition ${
-                    isYou ? 'bg-blue-50/80 font-medium' : ''
-                }`;
-
-                tr.innerHTML = `
-                    <td class="py-4 px-6 text-center font-bold text-gray-400">${rowNumber}</td>
-                    <td class="py-4 px-6 font-semibold text-gray-800">
-                        <div class="flex items-center gap-2">
-                            <span>${name}</span>
-                            ${isYou ? '<span class="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Це ти</span>' : ''}
-                        </div>
-                    </td>
-                    <td class="py-4 px-6 text-gray-600">
-                        ${nick ? '<span class="text-blue-500">@' + nick + '</span>' : '<span class="text-gray-300 font-normal">—</span>'}
-                    </td>
-                    <td class="py-4 px-6 text-center">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Учень 11-Б
-                        </span>
-                    </td>
-                `;
-
-                tbody.appendChild(tr);
-            }
-        });
-        
+</script>
     </script>
 </body>
 </html>

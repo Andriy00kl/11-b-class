@@ -395,7 +395,7 @@
     };
 
     // Правильна ініціалізація для Web CDN
-    const app = initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig); 
 const analytics = getAnalytics(app);
 
     document.addEventListener("DOMContentLoaded", () => {

@@ -543,28 +543,6 @@ function setupAccess() {
 }
     }
 }
-// Приклад обробки входу на сайт
-enterBtn.addEventListener('click', () => {
-    const name = userNameInput.value.trim();
-    let role = userRoleInput ? userRoleInput.value : 'Учень 11-Б';
-
-    if (!name) {
-        alert('Будь ласка, введіть ім\'я!');
-        return;
-    }
-
-    // Якщо введене ім'я є у списку адмінів — робимо роллю "Адмін"
-    if (ADMIN_NAMES.includes(name)) {
-        role = 'Адмін';
-    }
-
-    // Зберігаємо в браузері
-    localStorage.setItem('visitorName', name);
-    localStorage.setItem('visitorRole', role);
-    localStorage.setItem('visitorRole', 'Адмін');
-
-    location.reload(); // Перезавантажуємо сторінку для застосування прав
-});
 
 function initPhotoUploadListener() {
     const photoInput = document.getElementById('photo-upload-input');

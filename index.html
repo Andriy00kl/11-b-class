@@ -489,10 +489,11 @@ db.ref('events').on('value', (snapshot) => {
     if (!eventsGrid) return;
     eventsGrid.innerHTML = '';
     const data = snapshot.val();
-    const currentName = localStorage.getItem('visitorName'); // Ім'я поточного користувача
+    
+    // Отримуємо поточну роль (Учень чи Гість)
+    const role = localStorage.getItem('visitorRole'); 
 
     if (data) {
-        // Використовуємо Object.entries, щоб отримати унікальний ID Firebase
         Object.entries(data).reverse().forEach(([eventId, event]) => {
             let badgeClass = "bg-blue-100 text-blue-800";
             let badgeIcon = "📅";
@@ -504,18 +505,17 @@ db.ref('events').on('value', (snapshot) => {
                 badgeIcon = "🏆";
             }
 
-            // Перевіряємо, чи автор події — це той, хто зараз на сайті
-            const isAuthor = currentName && event.author === currentName;
+            // ПЕРЕВІРКА: Дозволяємо видаляти ВСІМ учням 11-Б (ігноруємо ім'я автора)
+            const canDelete = role === 'Учень 11-Б';
             
-            // Кнопка видалення показується тільки автору (у правому верхньому куті картки)
-            const deleteBtnHtml = isAuthor ? `
+            // Кнопка видалення
+            const deleteBtnHtml = canDelete ? `
                 <button class="delete-event-btn absolute top-3 right-3 bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition-colors z-10 shadow-sm" data-id="${eventId}" title="Видалити подію">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
             ` : '';
 
             const card = document.createElement('div');
-            // ВАЖЛИВО: додано клас 'relative', щоб кнопка видалення позиціонувалась правильно
             card.className = "relative bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col justify-between hover:shadow-lg transition";
             card.innerHTML = `
                 ${deleteBtnHtml}
@@ -532,7 +532,7 @@ db.ref('events').on('value', (snapshot) => {
                     <p class="text-gray-600 text-sm mb-4 leading-relaxed">${event.desc}</p>
                 </div>
                 <div class="text-xs text-gray-400 border-t pt-3 mt-2">
-                    Додав(ла): <span class="font-medium text-gray-600">${event.author}</span>
+                    Додав(ла): <span class="font-medium text-gray-600">${event.author || 'Невідомо'}</span>
                 </div>
             `;
             eventsGrid.appendChild(card);

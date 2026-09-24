@@ -542,24 +542,36 @@ function initPhotoUploadListener() {
 // Відкриття вікна та заповнення списку подій
 function openDeleteModal() {
     if (!deleteModal) return;
-
-    const currentName = localStorage.getItem('visitorName');
     
+    // Отримуємо ім'я користувача, який зараз заходив на сайт
+    const currentName = localStorage.getItem('visitorName');
+
     // Завантажуємо актуальний список подій з Firebase
     db.ref('events').once('value', (snapshot) => {
         const data = snapshot.val();
         deleteSelect.innerHTML = '';
 
         if (data) {
-            deleteSelect.innerHTML = '<option value="">-- Оберіть подію для видалення --</option>';
+            deleteSelect.innerHTML = '<option value="">-- Оберіть вашу подію для видалення --</option>';
+            let userEventsCount = 0;
+
             Object.entries(data).reverse().forEach(([id, event]) => {
-                const option = document.createElement('option');
-                option.value = id;
-                option.textContent = `${event.title} (${event.date || 'без дати'}) — ${event.author || 'Учень'}`;
-                deleteSelect.appendChild(option);
+                // Перевіряємо, чи поточний користувач є автором події
+                if (currentName && event.author === currentName) {
+                    userEventsCount++;
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = `${event.title} (${event.date || 'без дати'})`;
+                    deleteSelect.appendChild(option);
+                }
             });
+
+            // Якщо користувач ще не створив жодної події
+            if (userEventsCount === 0) {
+                deleteSelect.innerHTML = '<option value="">У вас немає створених подій для видалення</option>';
+            }
         } else {
-            deleteSelect.innerHTML = '<option value="">Немає створених подій</option>';
+            deleteSelect.innerHTML = '<option value="">У базі немає жодної події</option>';
         }
     });
 

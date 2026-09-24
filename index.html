@@ -469,19 +469,6 @@ const submitEventBtn = document.getElementById('submit-event-btn');
 
 // --- ПЕРЕВІРКА ДОСТУПУ (Учень / Гість) ---
 function setupAccess() {
-    const role = localStorage.getItem('visitorRole');
-    const uploadContainer = document.getElementById('upload-container');
-    const addEventContainer = document.getElementById('add-event-container');
-
-    function setupAccess() {
-    const role = localStorage.getItem('visitorRole');
-    const uploadContainer = document.getElementById('upload-container');
-    const addEventContainer = document.getElementById('add-event-container');
-
-    // Адмін та Учень 11-Б мають доступ до кнопок
-    const canManage = role === 'Учень 11-Б' || role === 'Адмін';
-
-    function setupAccess() {
     const currentName = localStorage.getItem('visitorName');
     let role = localStorage.getItem('visitorRole');
 
@@ -539,8 +526,6 @@ function setupAccess() {
                 </div>
             `;
         }
-    }
-}
     }
 }
 

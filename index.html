@@ -484,37 +484,29 @@ function setupAccess() {
     }
 }
 
-// 1. ОДНОРАЗОВИЙ СЛУХАЧ КЛІКІВ ДЛЯ ВИДАЛЕННЯ
-if (eventsGrid) {
-    eventsGrid.addEventListener('click', (e) => {
-        const deleteBtn = e.target.closest('.delete-event-btn');
-        
-        if (deleteBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            const eventId = deleteBtn.getAttribute('data-id');
-
-            if (confirm('Ви впевнені, що хочете видалити цю подію?')) {
-                db.ref('events/' + eventId).remove()
-                    .then(() => {
-                        alert('Подію успішно видалено!');
-                    })
-                    .catch((error) => {
-                        alert('Помилка видалення в Firebase: ' + error.message);
-                    });
-            }
-        }
-    });
-}
-
-// 2. ВІДОБРАЖЕННЯ КАРТОК ПОДІЙ З БАЗИ
+// --- ВІДОБРАЖЕННЯ ТА ВИДАЛЕННЯ ПОДІЙ ---
 db.ref('events').on('value', (snapshot) => {
     if (!eventsGrid) return;
-    eventsGrid.innerHTML = '';
     const data = snapshot.val();
+    eventsGrid.innerHTML = '';
+    const currentName = localStorage.getItem('visitorName');
 
     if (data) {
         Object.entries(data).reverse().forEach(([eventId, event]) => {
+            
+            // За бажанням перевірка автора (якщо хочете показувати ТІЛЬКИ автору — розкоментуйте наступний рядок):
+            // const isAuthor = currentName && event.author === currentName;
+            
+            // Кнопка видалення у вигляді червоного кошика у правому верхньому куті картки
+            const deleteBtnHtml = `
+                <button class="delete-event-btn absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition duration-300 z-10 shadow-md cursor-pointer" data-id="${eventId}" title="Видалити подію">
+                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </button>
+            `;
+
+            // Категорії та відповідні позначки
             let badgeClass = "bg-blue-100 text-blue-800";
             let badgeIcon = "📅";
             if (event.category === 'Поїздка') {
@@ -525,19 +517,10 @@ db.ref('events').on('value', (snapshot) => {
                 badgeIcon = "🏆";
             }
 
-            // Кнопка видалення (без жодних умов canDelete/isAuthor)
-            const deleteBtnHtml = `
-                <button type="button" class="delete-event-btn absolute top-3 right-3 bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-lg transition-colors z-20 shadow-sm cursor-pointer" data-id="${eventId}" title="Видалити подію">
-                    <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                </button>
-            `;
-
-            const card = document.createElement('div');
-            // Обов'язковий клас 'relative' для позиціонування кнопки
-            card.className = "relative bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col justify-between hover:shadow-lg transition";
-            card.innerHTML = `
+            const eventCard = document.createElement('div');
+            // 'relative' обов'язковий, щоб кнопка позиціонувалася відносно цієї картки
+            eventCard.className = 'relative bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col justify-between hover:shadow-lg transition';
+            eventCard.innerHTML = `
                 ${deleteBtnHtml}
                 <div>
                     <div class="flex items-center justify-between mb-3 pr-10">
@@ -553,45 +536,24 @@ db.ref('events').on('value', (snapshot) => {
                     Додав(ла): <span class="font-medium text-gray-600">${event.author || 'Учень'}</span>
                 </div>
             `;
-            eventsGrid.appendChild(card);
+            eventsGrid.appendChild(eventCard);
         });
+
+        // Додаємо подію кліку на всі кнопки видалення подій
+        document.querySelectorAll('.delete-event-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Зупиняємо розповсюдження події кліку
+                const id = e.currentTarget.getAttribute('data-id');
+                if (confirm('Ви впевнені, що хочете назавжди видалити цю подію?')) {
+                    db.ref('events/' + id).remove();
+                }
+            });
+        });
+
     } else {
         eventsGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Поки немає жодної події. Будьте першими!</p>`;
     }
-});
-
-db.ref('students').on('value', (snapshot) => {
-    const tbody = document.getElementById('students-table-body');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    const data = snapshot.val();
-    if (data) {
-        const currentName = localStorage.getItem('visitorName');
-        let count = 1;
-        Object.values(data).forEach(student => {
-            const isYou = currentName && currentName.toLowerCase() === student.name.toLowerCase();
-            const tr = document.createElement('tr');
-            tr.className = `hover:bg-gray-50 transition ${isYou ? 'bg-blue-50/80 font-medium' : ''}`;
-            tr.innerHTML = `
-                <td class="py-4 px-6 text-center font-bold text-gray-400">${count++}</td>
-                <td class="py-4 px-6 font-semibold text-gray-800">
-                    <div class="flex items-center gap-2">
-                        <span>${student.name}</span>
-                        ${isYou ? '<span class="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Це ти</span>' : ''}
-                    </div>
-                </td>
-                <td class="py-4 px-6 text-gray-600">
-                    ${student.nick ? '<span class="text-blue-500">@' + student.nick.replace('@','') + '</span>' : '<span class="text-gray-300 font-normal">—</span>'}
-                </td>
-                <td class="py-4 px-6 text-center">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Учень 11-Б</span>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    } else {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-gray-400">Список порожній</td></tr>`;
-    }
+    
 });
 
 function initPhotoUploadListener() {

@@ -155,6 +155,29 @@
             <!-- Контейнер для кнопки (Динамічно заповнюється для Учнів/Гостей) -->
             <div id="add-event-container" class="flex justify-center mb-10"></div>
 
+            <!-- МОДАЛЬНЕ ВІКНО ВИДАЛЕННЯ ПОДІЇ -->
+<div id="delete-event-modal" class="fixed inset-0 z-[60] hidden bg-black/60 flex items-center justify-center opacity-0 transition-opacity duration-300 px-4">
+    <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl transform scale-95 transition-transform duration-300">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <span class="text-red-500">🗑️</span> Видалити подію
+            </h3>
+            <button id="close-delete-event-modal" class="text-gray-400 hover:text-gray-600 focus:outline-none text-2xl font-bold">&times;</button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Оберіть подію для видалення</label>
+                <select id="delete-event-select" class="w-full border-gray-300 rounded-xl shadow-sm focus:ring-red-500 focus:border-red-500 px-4 py-2.5 border bg-white">
+                    <option value="">Завантаження подій...</option>
+                </select>
+            </div>
+            <button id="confirm-delete-event-btn" class="w-full mt-2 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-md transition-all">
+                Видалити обрану подію
+            </button>
+        </div>
+    </div>
+</div>
+
             <!-- Сітка подій -->
             <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
@@ -431,6 +454,10 @@ const userRoleInput = document.getElementById('userRole');
 const enterBtn = document.getElementById('enter-site-btn');
 const galleryGrid = document.getElementById('gallery-grid');
 const eventsGrid = document.getElementById('events-grid');
+const deleteModal = document.getElementById('delete-event-modal');
+const closeDeleteModalBtn = document.getElementById('close-delete-event-modal');
+const confirmDeleteBtn = document.getElementById('confirm-delete-event-btn');
+const deleteSelect = document.getElementById('delete-event-select');
 
 // Модальне вікно подій
 const eventModal = document.getElementById('event-modal');
@@ -467,94 +494,29 @@ function setupAccess() {
     if (addEventContainer) {
         if (role === 'Учень 11-Б') {
             addEventContainer.innerHTML = `
-                <button id="open-event-modal-btn" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all cursor-pointer transform hover:scale-105 active:scale-95">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Додати подію
-                </button>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button id="open-event-modal-btn" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all cursor-pointer transform hover:scale-105 active:scale-95">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Додати подію
+                    </button>
+                    <button id="open-delete-event-modal-btn" class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all cursor-pointer transform hover:scale-105 active:scale-95">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        Видалити подію
+                    </button>
+                </div>
             `;
-            const openBtn = document.getElementById('open-event-modal-btn');
-            if (openBtn) openBtn.addEventListener('click', openEventModal);
+            
+            document.getElementById('open-event-modal-btn')?.addEventListener('click', openEventModal);
+            document.getElementById('open-delete-event-modal-btn')?.addEventListener('click', openDeleteModal);
         } else {
             addEventContainer.innerHTML = `
                 <div class="bg-gray-100 border border-gray-200 text-gray-600 text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2">
-                    <span>🔒</span> Додавати події можуть лише учні 11-Б класу
+                    <span>🔒</span> Додавати та видаляти події можуть лише учні 11-Б класу
                 </div>
             `;
         }
     }
 }
-
-// --- ВІДОБРАЖЕННЯ ТА ВИДАЛЕННЯ ПОДІЙ ---
-db.ref('events').on('value', (snapshot) => {
-    if (!eventsGrid) return;
-    const data = snapshot.val();
-    eventsGrid.innerHTML = '';
-    const currentName = localStorage.getItem('visitorName');
-
-    if (data) {
-        Object.entries(data).reverse().forEach(([eventId, event]) => {
-            
-            // За бажанням перевірка автора (якщо хочете показувати ТІЛЬКИ автору — розкоментуйте наступний рядок):
-            // const isAuthor = currentName && event.author === currentName;
-            
-            // Кнопка видалення у вигляді червоного кошика у правому верхньому куті картки
-            const deleteBtnHtml = `
-                <button class="delete-event-btn absolute top-2 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition duration-300 z-100 shadow-md cursor-pointer" data-id="${eventId}" title="Видалити подію">
-                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                </button>
-            `;
-
-            // Категорії та відповідні позначки
-            let badgeClass = "bg-blue-100 text-blue-800";
-            let badgeIcon = "📅";
-            if (event.category === 'Поїздка') {
-                badgeClass = "bg-yellow-100 text-yellow-800";
-                badgeIcon = "🚌";
-            } else if (event.category === 'Досягнення') {
-                badgeClass = "bg-green-100 text-green-800";
-                badgeIcon = "🏆";
-            }
-
-            const eventCard = document.createElement('div');
-            // 'relative' обов'язковий, щоб кнопка позиціонувалася відносно цієї картки
-            eventCard.className = 'relative bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col justify-between hover:shadow-lg transition';
-            eventCard.innerHTML = `
-                ${deleteBtnHtml}
-                <div>
-                    <div class="flex items-center justify-between mb-3 pr-10">
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}">
-                            ${badgeIcon} ${event.category || 'Подія'}
-                        </span>
-                        <span class="text-xs text-gray-400 font-medium">${event.date || ''}</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">${event.title || ''}</h3>
-                    <p class="text-gray-600 text-sm mb-4 leading-relaxed">${event.desc || ''}</p>
-                </div>
-                <div class="text-xs text-gray-400 border-t pt-3 mt-2">
-                    Додав(ла): <span class="font-medium text-gray-600">${event.author || 'Учень'}</span>
-                </div>
-            `;
-            eventsGrid.appendChild(eventCard);
-        });
-
-        // Додаємо подію кліку на всі кнопки видалення подій
-        document.querySelectorAll('.delete-event-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Зупиняємо розповсюдження події кліку
-                const id = e.currentTarget.getAttribute('data-id');
-                if (confirm('Ви впевнені, що хочете назавжди видалити цю подію?')) {
-                    db.ref('events/' + id).remove();
-                }
-            });
-        });
-
-    } else {
-        eventsGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Поки немає жодної події. Будьте першими!</p>`;
-    }
-    
-});
 
 function initPhotoUploadListener() {
     const photoInput = document.getElementById('photo-upload-input');
@@ -575,6 +537,68 @@ function initPhotoUploadListener() {
         photoInput.value = '';
     });
 }
+
+
+// Відкриття вікна та заповнення списку подій
+function openDeleteModal() {
+    if (!deleteModal) return;
+    
+    // Завантажуємо актуальний список подій з Firebase
+    db.ref('events').once('value', (snapshot) => {
+        const data = snapshot.val();
+        deleteSelect.innerHTML = '';
+
+        if (data) {
+            deleteSelect.innerHTML = '<option value="">-- Оберіть подію для видалення --</option>';
+            Object.entries(data).reverse().forEach(([id, event]) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = `${event.title} (${event.date || 'без дати'}) — ${event.author || 'Учень'}`;
+                deleteSelect.appendChild(option);
+            });
+        } else {
+            deleteSelect.innerHTML = '<option value="">Немає створених подій</option>';
+        }
+    });
+
+    deleteModal.classList.remove('hidden');
+    setTimeout(() => {
+        deleteModal.classList.remove('opacity-0');
+        deleteModal.querySelector('div').classList.remove('scale-95');
+    }, 10);
+}
+
+// Закриття вікна
+function closeDeleteModal() {
+    if (!deleteModal) return;
+    deleteModal.classList.add('opacity-0');
+    deleteModal.querySelector('div').classList.add('scale-95');
+    setTimeout(() => {
+        deleteModal.classList.add('hidden');
+    }, 300);
+}
+
+closeDeleteModalBtn?.addEventListener('click', closeDeleteModal);
+
+// Підтвердження видалення
+confirmDeleteBtn?.addEventListener('click', () => {
+    const selectedId = deleteSelect.value;
+    if (!selectedId) {
+        alert('Будь ласка, оберіть подію зі списку!');
+        return;
+    }
+
+    if (confirm('Ви впевнені, що хочете остаточно видалити цю подію?')) {
+        db.ref('events/' + selectedId).remove()
+            .then(() => {
+                alert('Подію успішно видалено!');
+                closeDeleteModal();
+            })
+            .catch((error) => {
+                alert('Помилка при видаленні: ' + error.message);
+            });
+    }
+});
 
 // --- ВІДОБРАЖЕННЯ ТА ВИДАЛЕННЯ ФОТОГРАФІЙ ---
 db.ref('photos').on('value', (snapshot) => {

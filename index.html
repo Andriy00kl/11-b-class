@@ -533,7 +533,7 @@ db.ref('students').on('value', (snapshot) => {
     const role = localStorage.getItem('visitorRole');
     
     // Перевіряємо, чи є користувач Адміном
-    const isAdmin = role === 'Адмін' || (currentName && typeof ADMIN_NAMES !== 'undefined' && ADMIN_NAMES.includes(currentName));
+    const isAdmin = role === 'Адмін' ;
 
     if (data) {
         Object.entries(data).forEach(([studentId, student]) => {

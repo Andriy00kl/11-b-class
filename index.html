@@ -941,20 +941,6 @@ db.ref('photos').on('value', (snapshot) => {
             if (!galleryGrid) return;
             const data = snapshot.val();
             document.querySelectorAll('.uploaded-firebase-photo').forEach(el => el.remove());
-
-            if (data) {
-                Object.values(data).forEach(photo => {
-                    const photoCard = document.createElement('div');
-                    photoCard.className = 'uploaded-firebase-photo relative group overflow-hidden rounded-2xl shadow-md aspect-square bg-gray-100 border border-gray-200';
-                    photoCard.innerHTML = `
-                        <img src="${photo.src}" alt="Фото класу" class="w-full h-full object-cover group-hover:scale-110 transition duration-500 cursor-pointer">
-                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-end justify-between p-4 pointer-events-none">
-                            <span class="text-white font-medium text-xs">Додав(ла): ${photo.author}</span>
-                        </div>
-                    `;
-                    galleryGrid.appendChild(photoCard);
-                });
-            }
         });
 
         // --- LIGHTBOX (Перегляд фото на весь екран) ---

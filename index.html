@@ -484,14 +484,38 @@ function setupAccess() {
     }
 }
 
-// --- ВІДОБРАЖЕННЯ ТА ВИДАЛЕННЯ ПОДІЙ ---
+// --- 1. ДЕЛЕГУВАННЯ ПОДІЙ ДЛЯ ВИДАЛЕННЯ (вішається один раз) ---
+if (eventsGrid) {
+    eventsGrid.addEventListener('click', (e) => {
+        // Шукаємо кнопку видалення, навіть якщо клікнули на іконку всередині
+        const deleteBtn = e.target.closest('.delete-event-btn');
+        
+        if (deleteBtn) {
+            e.preventDefault();
+            const eventId = deleteBtn.getAttribute('data-id');
+
+            if (confirm('Ви впевнені, що хочете видалити цю подію?')) {
+                db.ref('events/' + eventId).remove()
+                    .then(() => {
+                        console.log('Подію успішно видалено зі бази!');
+                    })
+                    .catch((error) => {
+                        alert('Помилка Firebase при видаленні: ' + error.message);
+                    });
+            }
+        }
+    });
+}
+
+// --- 2. ВІДОБРАЖЕННЯ ПОДІЙ ІЗ БАЗИ ДАНИХ ---
 db.ref('events').on('value', (snapshot) => {
     if (!eventsGrid) return;
     eventsGrid.innerHTML = '';
     const data = snapshot.val();
     
-    // Отримуємо поточну роль (Учень чи Гість)
+    // Перевіряємо роль (якщо роль не вибрана, тимчасово дозволяємо видалення для перевірки)
     const role = localStorage.getItem('visitorRole'); 
+    const canDelete = !role || role === 'Учень 11-Б';
 
     if (data) {
         Object.entries(data).reverse().forEach(([eventId, event]) => {
@@ -505,13 +529,12 @@ db.ref('events').on('value', (snapshot) => {
                 badgeIcon = "🏆";
             }
 
-            // ПЕРЕВІРКА: Дозволяємо видаляти ВСІМ учням 11-Б (ігноруємо ім'я автора)
-            const canDelete = role === 'Учень 11-Б';
-            
-            // Кнопка видалення
+            // HTML кнопки видалення з клас 'pointer-events-none' на іконці SVG
             const deleteBtnHtml = canDelete ? `
-                <button class="delete-event-btn absolute top-3 right-3 bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition-colors z-10 shadow-sm" data-id="${eventId}" title="Видалити подію">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <button type="button" class="delete-event-btn absolute top-3 right-3 bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-lg transition-colors z-20 shadow-sm cursor-pointer" data-id="${eventId}" title="Видалити подію">
+                    <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
                 </button>
             ` : '';
 
@@ -524,30 +547,17 @@ db.ref('events').on('value', (snapshot) => {
                         <span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}">
                             ${badgeIcon} ${event.category}
                         </span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-gray-400 font-medium">${event.date}</span>
-                        </div>
+                        <span class="text-xs text-gray-400 font-medium">${event.date}</span>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">${event.title}</h3>
                     <p class="text-gray-600 text-sm mb-4 leading-relaxed">${event.desc}</p>
                 </div>
                 <div class="text-xs text-gray-400 border-t pt-3 mt-2">
-                    Додав(ла): <span class="font-medium text-gray-600">${event.author || 'Невідомо'}</span>
+                    Додав(ла): <span class="font-medium text-gray-600">${event.author || 'Учень'}</span>
                 </div>
             `;
             eventsGrid.appendChild(card);
         });
-
-        // Додаємо подію кліку на всі кнопки видалення подій
-        document.querySelectorAll('.delete-event-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = e.currentTarget.getAttribute('data-id');
-                if (confirm('Ви впевнені, що хочете видалити цю подію?')) {
-                    db.ref('events/' + id).remove();
-                }
-            });
-        });
-
     } else {
         eventsGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Поки немає жодної події. Будьте першими!</p>`;
     }

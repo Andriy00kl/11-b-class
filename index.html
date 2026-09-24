@@ -651,6 +651,37 @@
                 } else {
                     galleryGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Галерея порожня. Завантажте перше фото!</p>`;
                 }
+                // Шукайте схожий блок у вашому коді та замініть його на цей:
+db.ref('events').on('value', (snapshot) => {
+    // eventsGrid - це ID вашого контейнера для подій (наприклад, document.getElementById('events-grid'))
+    eventsGrid.innerHTML = ''; 
+    const role = localStorage.getItem('visitorRole');
+    
+    snapshot.forEach((childSnapshot) => {
+        const eventData = childSnapshot.val();
+        const eventId = childSnapshot.key;
+        
+        // 1. Створюємо кнопку видалення, ЯКЩО це учень
+        const deleteBtn = role === 'Учень 11-Б' ? `
+            <button onclick="deleteEvent('${eventId}')" class="absolute top-3 right-3 bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition-colors z-10" title="Видалити">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+        ` : '';
+
+        // 2. Додаємо ${deleteBtn} у розмітку картки. 
+        // ВАЖЛИВО: головний <div> картки обов'язково повинен мати клас "relative"!
+        const card = `
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative hover:shadow-md transition-shadow">
+                ${deleteBtn}
+                <div class="text-sm font-semibold text-blue-600 mb-2">${eventData.category || 'Подія'}</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">${eventData.title}</h3>
+                <p class="text-gray-500 text-sm mb-4">📅 ${eventData.date}</p>
+                <p class="text-gray-700">${eventData.description}</p>
+            </div>
+        `;
+        eventsGrid.insertAdjacentHTML('beforeend', card);
+    });
+});
             });
 
         // --- ВІТАЛЬНЕ ВІКНО ---

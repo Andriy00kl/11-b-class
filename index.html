@@ -532,6 +532,11 @@ function setupAccess() {
 function initPhotoUploadListener() {
     const photoInput = document.getElementById('photo-upload-input');
     if (!photoInput) return;
+
+    // ПЕРЕВІРКА: Якщо слухач вже був доданий раніше — зупиняємо функцію, щоб не дублювати
+    if (photoInput.dataset.listenerAttached) return;
+    photoInput.dataset.listenerAttached = 'true';
+
     photoInput.addEventListener('change', (e) => {
         const files = Array.from(e.target.files);
         files.forEach(file => {
@@ -545,7 +550,7 @@ function initPhotoUploadListener() {
             };
             reader.readAsDataURL(file);
         });
-        photoInput.value = '';
+        photoInput.value = ''; // Скидаємо вибір файлу
     });
 }
 

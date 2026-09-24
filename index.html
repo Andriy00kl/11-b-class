@@ -81,8 +81,9 @@
                 <!-- Десктопне меню -->
                 <nav class="hidden md:flex space-x-8">
                     <a href="#home" class="nav-link text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">Головна</a>
-                    <a href="#news" class="nav-link text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">Новини</a>
+                    <a href="#events" class="nav-link text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">Події</a>
                     <a href="#schedule" class="nav-link text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">Розклад</a>
+                    <a href="#gallery" class="nav-link text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">Фотографії</a>
                     <a href="#students" class="nav-link text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">Учні</a>
                 </nav>
 
@@ -482,6 +483,175 @@
                 }
             }
         }
+        // --- ВІДОБРАЖЕННЯ ТА ВИДАЛЕННЯ ПОДІЙ ---
+            db.ref('events').on('value', (snapshot) => {
+                if (!eventsGrid) return;
+                eventsGrid.innerHTML = '';
+                const data = snapshot.val();
+                const currentName = localStorage.getItem('visitorName'); // Ім'я поточного користувача
+
+                if (data) {
+                    // Використовуємо Object.entries, щоб отримати унікальний ID Firebase
+                    Object.entries(data).reverse().forEach(([eventId, event]) => {
+                        let badgeClass = "bg-blue-100 text-blue-800";
+                        let badgeIcon = "📅";
+                        if (event.category === 'Поїздка') {
+                            badgeClass = "bg-yellow-100 text-yellow-800";
+                            badgeIcon = "🚌";
+                        } else if (event.category === 'Досягнення') {
+                            badgeClass = "bg-green-100 text-green-800";
+                            badgeIcon = "🏆";
+                        }
+
+                        // Перевіряємо, чи автор події — це той, хто зараз на сайті
+                        const isAuthor = currentName && event.author === currentName;
+                        
+                        // Кнопка видалення показується тільки автору
+                        const deleteBtnHtml = isAuthor ? `
+                            <button class="delete-event-btn text-red-400 hover:text-red-600 p-1 bg-red-50 hover:bg-red-100 rounded-md transition" data-id="${eventId}" title="Видалити подію">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        ` : '';
+
+                        const card = document.createElement('div');
+                        card.className = "bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col justify-between hover:shadow-lg transition";
+                        card.innerHTML = `
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}">
+                                        ${badgeIcon} ${event.category}
+                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-400 font-medium">${event.date}</span>
+                                        ${deleteBtnHtml}
+                                    </div>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">${event.title}</h3>
+                                <p class="text-gray-600 text-sm mb-4 leading-relaxed">${event.desc}</p>
+                            </div>
+                            <div class="text-xs text-gray-400 border-t pt-3 mt-2">
+                                Додав(ла): <span class="font-medium text-gray-600">${event.author}</span>
+                            </div>
+                        `;
+                        eventsGrid.appendChild(card);
+                    });
+
+                    // Додаємо подію кліку на всі кнопки видалення подій
+                    document.querySelectorAll('.delete-event-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const id = e.currentTarget.getAttribute('data-id');
+                            if (confirm('Ви впевнені, що хочете видалити цю подію?')) {
+                                db.ref('events/' + id).remove();
+                            }
+                        });
+                    });
+
+                } else {
+                    eventsGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Поки немає жодної події. Будьте першими!</p>`;
+                }
+            });
+
+            db.ref('students').on('value', (snapshot) => {
+                const tbody = document.getElementById('students-table-body');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+                const data = snapshot.val();
+                if (data) {
+                    const currentName = localStorage.getItem('visitorName');
+                    let count = 1;
+                    Object.values(data).forEach(student => {
+                        const isYou = currentName && currentName.toLowerCase() === student.name.toLowerCase();
+                        const tr = document.createElement('tr');
+                        tr.className = `hover:bg-gray-50 transition ${isYou ? 'bg-blue-50/80 font-medium' : ''}`;
+                        tr.innerHTML = `
+                            <td class="py-4 px-6 text-center font-bold text-gray-400">${count++}</td>
+                            <td class="py-4 px-6 font-semibold text-gray-800">
+                                <div class="flex items-center gap-2">
+                                    <span>${student.name}</span>
+                                    ${isYou ? '<span class="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Це ти</span>' : ''}
+                                </div>
+                            </td>
+                            <td class="py-4 px-6 text-gray-600">
+                                ${student.nick ? '<span class="text-blue-500">@' + student.nick.replace('@','') + '</span>' : '<span class="text-gray-300 font-normal">—</span>'}
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Учень 11-Б</span>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-gray-400">Список порожній</td></tr>`;
+                }
+            });
+
+            function initPhotoUploadListener() {
+                const photoInput = document.getElementById('photo-upload-input');
+                if (!photoInput) return;
+                photoInput.addEventListener('change', (e) => {
+                    const files = Array.from(e.target.files);
+                    files.forEach(file => {
+                        if (!file.type.startsWith('image/')) return;
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            db.ref('photos').push({
+                                src: event.target.result,
+                                author: localStorage.getItem('visitorName') || 'Учень 11-Б'
+                            });
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                    photoInput.value = '';
+                });
+            }
+
+            // --- ВІДОБРАЖЕННЯ ТА ВИДАЛЕННЯ ФОТОГРАФІЙ ---
+            db.ref('photos').on('value', (snapshot) => {
+                if (!galleryGrid) return;
+                const data = snapshot.val();
+                galleryGrid.innerHTML = '';
+                const currentName = localStorage.getItem('visitorName');
+
+                if (data) {
+                    Object.entries(data).forEach(([photoId, photo]) => {
+                        
+                        // Перевіряємо, чи автор фото — це той, хто зараз на сайті
+                        const isAuthor = currentName && photo.author === currentName;
+
+                        // Кнопка видалення у вигляді маленького кошика (показується тільки автору при наведенні)
+                        const deleteBtnHtml = isAuthor ? `
+                            <button class="delete-photo-btn absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition duration-300 z-10 shadow-lg" data-id="${photoId}" title="Видалити фото">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        ` : '';
+
+                        const photoCard = document.createElement('div');
+                        photoCard.className = 'relative group overflow-hidden rounded-2xl shadow-md aspect-square bg-gray-100 border border-gray-200 cursor-pointer';
+                        photoCard.innerHTML = `
+                            ${deleteBtnHtml}
+                            <img src="${photo.src}" alt="Фото класу" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-end justify-between p-4 pointer-events-none">
+                                <span class="text-white font-medium text-xs drop-shadow-md">Додав(ла): ${photo.author}</span>
+                            </div>
+                        `;
+                        galleryGrid.appendChild(photoCard);
+                    });
+
+                    // Додаємо подію кліку на всі кнопки видалення фотографій
+                    document.querySelectorAll('.delete-photo-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Зупиняємо клік, щоб не відкривалось фото на весь екран
+                            const id = e.currentTarget.getAttribute('data-id');
+                            if (confirm('Ви впевнені, що хочете назавжди видалити це фото?')) {
+                                db.ref('photos/' + id).remove();
+                            }
+                        });
+                    });
+
+                } else {
+                    galleryGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Галерея порожня. Завантажте перше фото!</p>`;
+                }
+            });
 
         // --- ВІТАЛЬНЕ ВІКНО ---
         if (localStorage.getItem('siteVisited') === 'true') {
@@ -775,6 +945,7 @@
                 });
             });
         }
+        
     });
     document.getElementById('secretBtn').addEventListener('click', function() {
             // Знаходимо всі назви предметів (другий span всередині кожного <li> в розкладі)

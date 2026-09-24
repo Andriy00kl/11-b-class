@@ -56,6 +56,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <button id="btn-student" class="py-2.5 px-4 border-2 border-gray-200 text-gray-600 font-semibold rounded-xl hover:border-blue-300 transition-colors">Я з 11-Б</button>
                     <button id="btn-guest" class="py-2.5 px-4 border-2 border-gray-200 text-gray-600 font-semibold rounded-xl hover:border-blue-300 transition-colors">Просто гість</button>
+                    <button id="btn-admin" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl transition">👑 Я Адмін</button>
                 </div>
                 <input type="hidden" id="userRole" value="">
             </div>
@@ -459,6 +460,8 @@ const closeDeleteModalBtn = document.getElementById('close-delete-event-modal');
 const confirmDeleteBtn = document.getElementById('confirm-delete-event-btn');
 const deleteSelect = document.getElementById('delete-event-select');
 
+const ADMIN_NAMES = ["Андрій Шевченко"];
+
 // Модальне вікно подій
 const eventModal = document.getElementById('event-modal');
 const closeEventModalBtn = document.getElementById('close-event-modal');
@@ -470,9 +473,31 @@ function setupAccess() {
     const uploadContainer = document.getElementById('upload-container');
     const addEventContainer = document.getElementById('add-event-container');
 
-    // 1. Доступ до додавання фото
+    function setupAccess() {
+    const role = localStorage.getItem('visitorRole');
+    const uploadContainer = document.getElementById('upload-container');
+    const addEventContainer = document.getElementById('add-event-container');
+
+    // Адмін та Учень 11-Б мають доступ до кнопок
+    const canManage = role === 'Учень 11-Б' || role === 'Адмін';
+
+    function setupAccess() {
+    const currentName = localStorage.getItem('visitorName');
+    let role = localStorage.getItem('visitorRole');
+
+    // Якщо ім'я є в списку ADMIN_NAMES — автоматично прирівнюємо до Адміна
+    if (currentName && ADMIN_NAMES.includes(currentName)) {
+        role = 'Адмін';
+        localStorage.setItem('visitorRole', 'Адмін');
+    }
+
+    const uploadContainer = document.getElementById('upload-container');
+    const addEventContainer = document.getElementById('add-event-container');
+    const canManage = role === 'Учень 11-Б' || role === 'Адмін';
+
+    // 1. Кнопки додавання фото
     if (uploadContainer) {
-        if (role === 'Учень 11-Б') {
+        if (canManage) {
             uploadContainer.innerHTML = `
                 <input type="file" id="photo-upload-input" accept="image/*" multiple class="hidden">
                 <label for="photo-upload-input" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all cursor-pointer transform hover:scale-105 active:scale-95">
@@ -490,9 +515,9 @@ function setupAccess() {
         }
     }
 
-    // 2. Доступ до додавання подій
+    // 2. Кнопки подій
     if (addEventContainer) {
-        if (role === 'Учень 11-Б') {
+        if (canManage) {
             addEventContainer.innerHTML = `
                 <div class="flex flex-wrap justify-center gap-4">
                     <button id="open-event-modal-btn" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all cursor-pointer transform hover:scale-105 active:scale-95">
@@ -505,7 +530,6 @@ function setupAccess() {
                     </button>
                 </div>
             `;
-            
             document.getElementById('open-event-modal-btn')?.addEventListener('click', openEventModal);
             document.getElementById('open-delete-event-modal-btn')?.addEventListener('click', openDeleteModal);
         } else {
@@ -517,6 +541,30 @@ function setupAccess() {
         }
     }
 }
+    }
+}
+// Приклад обробки входу на сайт
+enterBtn.addEventListener('click', () => {
+    const name = userNameInput.value.trim();
+    let role = userRoleInput ? userRoleInput.value : 'Учень 11-Б';
+
+    if (!name) {
+        alert('Будь ласка, введіть ім\'я!');
+        return;
+    }
+
+    // Якщо введене ім'я є у списку адмінів — робимо роллю "Адмін"
+    if (ADMIN_NAMES.includes(name)) {
+        role = 'Адмін';
+    }
+
+    // Зберігаємо в браузері
+    localStorage.setItem('visitorName', name);
+    localStorage.setItem('visitorRole', role);
+    localStorage.setItem('visitorRole', 'Адмін');
+
+    location.reload(); // Перезавантажуємо сторінку для застосування прав
+});
 
 function initPhotoUploadListener() {
     const photoInput = document.getElementById('photo-upload-input');
@@ -543,32 +591,33 @@ function initPhotoUploadListener() {
 function openDeleteModal() {
     if (!deleteModal) return;
     
-    // Отримуємо ім'я користувача, який зараз заходив на сайт
     const currentName = localStorage.getItem('visitorName');
+    const role = localStorage.getItem('visitorRole');
+    const isAdmin = role === 'Адмін';
 
-    // Завантажуємо актуальний список подій з Firebase
     db.ref('events').once('value', (snapshot) => {
         const data = snapshot.val();
         deleteSelect.innerHTML = '';
 
         if (data) {
-            deleteSelect.innerHTML = '<option value="">-- Оберіть вашу подію для видалення --</option>';
-            let userEventsCount = 0;
+            deleteSelect.innerHTML = '<option value="">-- Оберіть подію для видалення --</option>';
+            let count = 0;
 
             Object.entries(data).reverse().forEach(([id, event]) => {
-                // Перевіряємо, чи поточний користувач є автором події
-                if (currentName && event.author === currentName) {
-                    userEventsCount++;
+                const isAuthor = currentName && event.author === currentName;
+
+                // Якщо це АДМІН — показуємо ВСІ події. Якщо УЧЕНЬ — тільки ЙОГО події.
+                if (isAdmin || isAuthor) {
+                    count++;
                     const option = document.createElement('option');
                     option.value = id;
-                    option.textContent = `${event.title} (${event.date || 'без дати'})`;
+                    option.textContent = `${event.title} (${event.date || 'без дати'}) — Автор: ${event.author || 'Невідомо'}`;
                     deleteSelect.appendChild(option);
                 }
             });
 
-            // Якщо користувач ще не створив жодної події
-            if (userEventsCount === 0) {
-                deleteSelect.innerHTML = '<option value="">У вас немає створених подій для видалення</option>';
+            if (count === 0) {
+                deleteSelect.innerHTML = '<option value="">Немає подій, доступних для видалення</option>';
             }
         } else {
             deleteSelect.innerHTML = '<option value="">У базі немає жодної події</option>';
@@ -619,18 +668,21 @@ db.ref('photos').on('value', (snapshot) => {
     if (!galleryGrid) return;
     const data = snapshot.val();
     galleryGrid.innerHTML = '';
+    
     const currentName = localStorage.getItem('visitorName');
+    const role = localStorage.getItem('visitorRole');
+    const isAdmin = role === 'Адмін';
 
     if (data) {
         Object.entries(data).forEach(([photoId, photo]) => {
-            
-            // Перевіряємо, чи автор фото — це той, хто зараз на сайті
             const isAuthor = currentName && photo.author === currentName;
+            
+            // Адмін бачить кнопку видалення на ВСІХ фото, а учень — лише на СВОЇХ
+            const canDeletePhoto = isAdmin || isAuthor;
 
-            // Кнопка видалення у вигляді маленького кошика (показується тільки автору при наведенні)
-            const deleteBtnHtml = isAuthor ? `
-                <button class="delete-photo-btn absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition duration-300 z-10 shadow-lg" data-id="${photoId}" title="Видалити фото">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            const deleteBtnHtml = canDeletePhoto ? `
+                <button class="delete-photo-btn absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition duration-300 z-10 shadow-lg cursor-pointer" data-id="${photoId}" title="Видалити фото">
+                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
             ` : '';
 
@@ -646,10 +698,9 @@ db.ref('photos').on('value', (snapshot) => {
             galleryGrid.appendChild(photoCard);
         });
 
-        // Додаємо подію кліку на всі кнопки видалення фотографій
         document.querySelectorAll('.delete-photo-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Зупиняємо клік, щоб не відкривалось фото на весь екран
+                e.stopPropagation();
                 const id = e.currentTarget.getAttribute('data-id');
                 if (confirm('Ви впевнені, що хочете назавжди видалити це фото?')) {
                     db.ref('photos/' + id).remove();
@@ -660,7 +711,6 @@ db.ref('photos').on('value', (snapshot) => {
     } else {
         galleryGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Галерея порожня. Завантажте перше фото!</p>`;
     }
-    
 });
 
         // --- ВІТАЛЬНЕ ВІКНО ---

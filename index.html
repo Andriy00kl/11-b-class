@@ -542,6 +542,8 @@ function initPhotoUploadListener() {
 // Відкриття вікна та заповнення списку подій
 function openDeleteModal() {
     if (!deleteModal) return;
+
+    const currentName = localStorage.getItem('visitorName');
     
     // Завантажуємо актуальний список подій з Firebase
     db.ref('events').once('value', (snapshot) => {

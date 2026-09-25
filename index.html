@@ -521,37 +521,102 @@ function setupAccess() {
     }
 }
 
-// --- ВІДОБРАЖЕННЯ ТА ВИДАЛЕННЯ УЧНІВ (ТІЛЬКИ ДЛЯ АДМІНА) ---
-const studentsGrid = document.getElementById('students-grid'); // Вкажіть ID вашого контейнера учнів
+// --- ВІДОБРАЖЕННЯ ТА ВИДАЛЕННЯ УЧНІВ (ЧЕРЕЗ МЕНЮ ДЛЯ АДМІНА) ---
+const studentsGrid = document.getElementById('students-grid');
 
+// 1. СТВОРЕННЯ АДМІН-ПАНЕЛІ ЗПРАВА ПІД ТАБЛИЦЕЮ (ВИКОНУЄТЬСЯ ОДИН РАЗ)
+let adminPanel = document.getElementById('admin-student-manager');
+if (!adminPanel && studentsGrid) {
+    adminPanel = document.createElement('div');
+    adminPanel.id = 'admin-student-manager';
+    // Вирівнюємо весь блок по правому краю (items-end)
+    adminPanel.className = 'mt-6 hidden flex-col items-end w-full';
+    
+    // Створюємо жовту кнопку та прихований контейнер для меню
+    adminPanel.innerHTML = `
+        <button id="show-delete-dropdown-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300 cursor-pointer">
+            ⚙️ Керування учнями
+        </button>
+        <div id="delete-dropdown-container" class="hidden mt-3 flex-col sm:flex-row gap-2 w-full max-w-md justify-end">
+            <select id="student-delete-select" class="w-full sm:w-auto flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none cursor-pointer text-sm bg-white">
+                <option value="" disabled selected>-- Оберіть учня для видалення --</option>
+            </select>
+            <button id="confirm-student-delete-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 whitespace-nowrap cursor-pointer text-sm">
+                Видалити
+            </button>
+        </div>
+    `;
+    
+    // Автоматично додаємо цю панель відразу ПІСЛЯ сітки з учнями
+    studentsGrid.parentNode.insertBefore(adminPanel, studentsGrid.nextSibling);
+
+    // Відкриття та закриття меню при кліку на жовту кнопку
+    document.getElementById('show-delete-dropdown-btn').addEventListener('click', () => {
+        const dropdown = document.getElementById('delete-dropdown-container');
+        dropdown.classList.toggle('hidden');
+        dropdown.classList.toggle('flex');
+    });
+
+    // Дія при натисканні на червону кнопку "Видалити"
+    document.getElementById('confirm-student-delete-btn').addEventListener('click', () => {
+        const select = document.getElementById('student-delete-select');
+        const studentId = select.value;
+        const studentName = select.options[select.selectedIndex]?.text;
+
+        if (!studentId) {
+            alert('Будь ласка, оберіть учня зі списку.');
+            return;
+        }
+
+        if (confirm(`Ви впевнені, що хочете остаточно видалити учня: ${studentName}?`)) {
+            // Викликаємо функцію remove() для видалення конкретного запису з бази Firebase
+            db.ref('students/' + studentId).remove()
+                .then(() => {
+                    alert('Учня успішно видалено!');
+                    select.value = ""; // Скидаємо вибір
+                    document.getElementById('delete-dropdown-container').classList.add('hidden');
+                    document.getElementById('delete-dropdown-container').classList.remove('flex');
+                })
+                .catch((error) => alert('Помилка при видаленні: ' + error.message));
+        }
+    });
+}
+
+// 2. ЗАВАНТАЖЕННЯ ДАНИХ ТА ОНОВЛЕННЯ ІНТЕРФЕЙСУ
 db.ref('students').on('value', (snapshot) => {
     if (!studentsGrid) return;
     studentsGrid.innerHTML = '';
     
+    const studentSelect = document.getElementById('student-delete-select');
+    if (studentSelect) {
+        // Очищаємо список перед кожним оновленням, щоб не було дублювань
+        studentSelect.innerHTML = '<option value="" disabled selected>-- Оберіть учня для видалення --</option>';
+    }
+
     const data = snapshot.val();
     const currentName = localStorage.getItem('visitorName');
     const role = localStorage.getItem('visitorRole');
     
-    // Перевіряємо, чи є користувач Адміном
-    const isAdmin = role === 'Адмін' ;
+    // Перевіряємо, чи має поточний користувач права Адміністратора
+    const isAdmin = role === 'Адмін' || (currentName && typeof ADMIN_NAMES !== 'undefined' && ADMIN_NAMES.includes(currentName));
+
+    // Показуємо або приховуємо жовту кнопку залежно від ролі користувача
+    if (adminPanel) {
+        if (isAdmin) {
+            adminPanel.classList.remove('hidden');
+            adminPanel.classList.add('flex');
+        } else {
+            adminPanel.classList.add('hidden');
+            adminPanel.classList.remove('flex');
+        }
+    }
 
     if (data) {
         Object.entries(data).forEach(([studentId, student]) => {
-            
-            // Кнопка видалення (показується ТІЛЬКИ Адміну)
-            const deleteBtnHtml = isAdmin ? `
-                <button class="delete-student-btn absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition duration-300 z-10 shadow-md cursor-pointer" data-id="${studentId}" title="Видалити учня">
-                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                </button>
-            ` : '';
-
+            // 2.1 Малюємо звичайну картку учня (без сміттєвого кошика на самій картці)
             const studentCard = document.createElement('div');
-            // 'relative' обов'язковий для позиціонування кнопки в кутку
-            studentCard.className = 'relative bg-white p-5 rounded-2xl shadow-md border border-gray-100 flex items-center gap-4 hover:shadow-lg transition';
+            studentCard.className = 'bg-white p-5 rounded-2xl shadow-md border border-gray-100 flex items-center gap-4 hover:shadow-lg transition';
             studentCard.innerHTML = `
-                ${deleteBtnHtml}
                 <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
                     ${student.name ? student.name.charAt(0).toUpperCase() : 'У'}
                 </div>
@@ -561,26 +626,15 @@ db.ref('students').on('value', (snapshot) => {
                 </div>
             `;
             studentsGrid.appendChild(studentCard);
-        });
 
-        // Слухач для кнопок видалення учнів
-        document.querySelectorAll('.delete-student-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = e.currentTarget.getAttribute('data-id');
-                
-                if (confirm('Ви впевнені, що хочете видалити цього учня зі списку?')) {
-                    db.ref('students/' + id).remove()
-                        .then(() => {
-                            alert('Учня успішно видалено!');
-                        })
-                        .catch((error) => {
-                            alert('Помилка при видаленні: ' + error.message);
-                        });
-                }
-            });
+            // 2.2 Якщо це Адмін, динамічно створюємо елемент <option> та додаємо до випадаючого списку
+            if (studentSelect && isAdmin) {
+                const option = document.createElement('option');
+                option.value = studentId;
+                option.textContent = student.name;
+                studentSelect.appendChild(option);
+            }
         });
-
     } else {
         studentsGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Список учнів порожній.</p>`;
     }

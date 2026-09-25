@@ -522,13 +522,13 @@ function setupAccess() {
 }
 
 // --- ВІДОБРАЖЕННЯ ТА ВИДАЛЕННЯ УЧНІВ (ЧЕРЕЗ МЕНЮ ДЛЯ АДМІНА) ---
-const studentsGrid = document.getElementById('students-grid');
+const studentsGrid = document.getElementById('students');
 
 // 1. СТВОРЕННЯ АДМІН-ПАНЕЛІ ЗПРАВА ПІД ТАБЛИЦЕЮ (ВИКОНУЄТЬСЯ ОДИН РАЗ)
-let adminPanel = document.getElementById('admin-student-manager');
+let adminPanel = document.getElementById('ADMIN_NAMES');
 if (!adminPanel && studentsGrid) {
     adminPanel = document.createElement('div');
-    adminPanel.id = 'admin-student-manager';
+    adminPanel.id = 'ADMIN_NAMES';
     // Вирівнюємо весь блок по правому краю (items-end)
     adminPanel.className = 'mt-6 hidden flex-col items-end w-full';
     
